@@ -2,13 +2,13 @@ import * as React from "react";
 
 import {assertNever} from "./utils";
 
-export enum FeedbackStrategy {
-  OnFirstBlur,
-  OnFirstChange,
-  OnFirstSuccess,
-  OnFirstSuccessOrFirstBlur,
-  OnSubmit,
-}
+// Don't use an enum for Flow compat
+export type FeedbackStrategy =
+  | "OnFirstBlur"
+  | "OnFirstChange"
+  | "OnFirstSuccess"
+  | "OnFirstSuccessOrFirstBlur"
+  | "OnSubmit";
 
 interface Errors<DraftType extends object> {
   fieldErrors: {[P in keyof DraftType]: string | null};
@@ -114,7 +114,7 @@ export default class Form<DraftType extends object> extends React.Component<
   static defaultProps = {
     fieldValidations: {},
     validations: [],
-    feedbackStrategy: FeedbackStrategy.OnFirstBlur,
+    feedbackStrategy: "OnFirstBlur",
   };
 
   private fieldCache: null | FieldsObject<DraftType> = null;
@@ -147,28 +147,28 @@ export default class Form<DraftType extends object> extends React.Component<
   ): boolean {
     const feedbackStrategy = this.props.feedbackStrategy as FeedbackStrategy;
     switch (feedbackStrategy) {
-      case FeedbackStrategy.OnFirstBlur:
+      case "OnFirstBlur":
         for (const fieldName of fieldNames) {
           if (this.state.meta.fields[fieldName].touched === false) {
             return false;
           }
         }
         return true;
-      case FeedbackStrategy.OnFirstChange:
+      case "OnFirstChange":
         for (const fieldName of fieldNames) {
           if (this.state.meta.fields[fieldName].changed === false) {
             return false;
           }
         }
         return true;
-      case FeedbackStrategy.OnFirstSuccess:
+      case "OnFirstSuccess":
         for (const fieldName of fieldNames) {
           if (this.state.meta.fields[fieldName].succeeded === false) {
             return false;
           }
         }
         return true;
-      case FeedbackStrategy.OnFirstSuccessOrFirstBlur:
+      case "OnFirstSuccessOrFirstBlur":
         for (const fieldName of fieldNames) {
           if (
             !this.state.meta.fields[fieldName].succeeded &&
@@ -178,7 +178,7 @@ export default class Form<DraftType extends object> extends React.Component<
           }
         }
         return true;
-      case FeedbackStrategy.OnSubmit:
+      case "OnSubmit":
         return this.state.meta.submitted;
       default:
         assertNever(feedbackStrategy);
