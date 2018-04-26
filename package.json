@@ -4,6 +4,7 @@
   "description": "Strongly-typed React form state management",
   "author": "Zach Gotsch",
   "license": "MIT",
+  "repository": "github:flexport/formula-one",
 
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
