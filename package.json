@@ -6,12 +6,12 @@
   "license": "MIT",
   "repository": "github:flexport/formula-one",
 
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/Form.js",
+  "types": "./dist/Form.d.ts",
   "files": ["dist"],
 
   "scripts": {
-    "build": "tsc --declaration"
+    "build": "rm ./dist/*; tsc --declaration"
   },
 
   "peerDependencies": {
