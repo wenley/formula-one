@@ -261,7 +261,8 @@ export default class Form<DraftType extends object> extends React.Component<
     const errors = this.makeErrors();
 
     const fieldErrorsArray = Object.keys(errors.fieldErrors).reduce(
-      (memo, error) => {
+      (memo, key) => {
+        const error: string | null = errors.fieldErrors[key as keyof DraftType];
         return error === null ? memo : memo.concat([error]);
       },
       [] as Array<string>
