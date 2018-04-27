@@ -32,7 +32,6 @@ export interface MetaField {
   touched: boolean; // blurred
   changed: boolean;
   succeeded: boolean;
-  validationSucceeded: boolean;
   asyncValidationInFlight: boolean;
 }
 
@@ -58,7 +57,7 @@ export type SubmitFunction<DraftType> = (x: DraftType) => void;
 export interface FormProps<DraftType extends object> {
   initialValue: DraftType;
   children: (
-    formStuff: {
+    formParams: {
       onSubmit: (e: React.FormEvent<HTMLElement>) => void;
       formState: Readonly<DraftType>;
       meta: Meta<DraftType>;
@@ -99,7 +98,6 @@ function makeNewMeta<DraftType extends object>(
         touched: false,
         changed: false,
         succeeded: false,
-        validationSucceeded: false,
         asyncValidationInFlight: false,
       };
       return Object.assign(memo, {[key]: metaField});
@@ -132,6 +130,30 @@ export default class Form<DraftType extends object> extends React.Component<
       formState: this.props.initialValue,
       meta: makeNewMeta(this.props.initialValue),
     });
+  }
+
+  render() {
+    return (
+      <FormContext.Provider
+        value={{
+          formState: this.state.formState,
+          // Filthy monomorphization lies
+          // tslint:disable-next-line no-any
+          errors: (this.makeErrors() as any) as Errors<{}>,
+          onChange: this.handleFieldChange,
+          onBlur: this.handleFieldBlur,
+        }}
+      >
+        {this.props.children(
+          {
+            meta: this.state.meta,
+            formState: this.state.formState,
+            onSubmit: this.handleSubmit,
+          },
+          this.fields
+        )}
+      </FormContext.Provider>
+    );
   }
 
   private get fields(): FieldsObject<DraftType> {
@@ -292,8 +314,6 @@ export default class Form<DraftType extends object> extends React.Component<
         };
       },
       () => {
-        // tslint:disable
-        // debugger;
         // set succeeded
         let formErrors: Array<FormError<DraftType>> = [];
         if (this.props.validations) {
@@ -336,36 +356,12 @@ export default class Form<DraftType extends object> extends React.Component<
   private handleFieldBlur = <P extends keyof DraftType>(fieldName: P) => {
     this.updateFieldMeta(fieldName, "touched", true);
   };
-
-  render() {
-    return (
-      <FormContext.Provider
-        value={{
-          formState: this.state.formState,
-          // Filthy monomorphization lies
-          // tslint:disable-next-line no-any
-          errors: (this.makeErrors() as any) as Errors<{}>,
-          onChange: this.handleFieldChange,
-          onBlur: this.handleFieldBlur,
-        }}
-      >
-        {this.props.children(
-          {
-            meta: this.state.meta,
-            formState: this.state.formState,
-            onSubmit: this.handleSubmit,
-          },
-          this.fields
-        )}
-      </FormContext.Provider>
-    );
-  }
 }
 
 export interface FieldProps<DraftType, OutputType> {
   label?: string;
   children: (
-    foo: {
+    fieldParams: {
       value: OutputType;
       showError: boolean;
       formState: Readonly<DraftType>;
@@ -406,6 +402,7 @@ export class Field<
           } = (context as any) as ContextPayload<DraftType>;
           // This cast is a little gross, but static properties can't reference type params
           // also the typechecker probably can't prove OutputType === DraftType[fieldName]
+          // tslint:disable-next-line no-any
           const value = (formState[fieldName] as any) as OutputType;
           const fieldError = errors.fieldErrors[fieldName];
           const relevantFormErrors = errors.formErrors.filter(error => {
