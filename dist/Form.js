@@ -10,14 +10,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 import * as React from "react";
 import { assertNever } from "./utils";
-export var FeedbackStrategy;
-(function (FeedbackStrategy) {
-    FeedbackStrategy[FeedbackStrategy["OnFirstBlur"] = 0] = "OnFirstBlur";
-    FeedbackStrategy[FeedbackStrategy["OnFirstChange"] = 1] = "OnFirstChange";
-    FeedbackStrategy[FeedbackStrategy["OnFirstSuccess"] = 2] = "OnFirstSuccess";
-    FeedbackStrategy[FeedbackStrategy["OnFirstSuccessOrFirstBlur"] = 3] = "OnFirstSuccessOrFirstBlur";
-    FeedbackStrategy[FeedbackStrategy["OnSubmit"] = 4] = "OnSubmit";
-})(FeedbackStrategy || (FeedbackStrategy = {}));
 var FormContext = React.createContext(null);
 function makeNewMeta(draft) {
     return {
@@ -128,7 +120,7 @@ var Form = /** @class */ (function (_super) {
     Form.prototype.shouldShowFeedbackForFields = function (fieldNames) {
         var feedbackStrategy = this.props.feedbackStrategy;
         switch (feedbackStrategy) {
-            case FeedbackStrategy.OnFirstBlur:
+            case "OnFirstBlur":
                 for (var _i = 0, fieldNames_1 = fieldNames; _i < fieldNames_1.length; _i++) {
                     var fieldName = fieldNames_1[_i];
                     if (this.state.meta.fields[fieldName].touched === false) {
@@ -136,7 +128,7 @@ var Form = /** @class */ (function (_super) {
                     }
                 }
                 return true;
-            case FeedbackStrategy.OnFirstChange:
+            case "OnFirstChange":
                 for (var _a = 0, fieldNames_2 = fieldNames; _a < fieldNames_2.length; _a++) {
                     var fieldName = fieldNames_2[_a];
                     if (this.state.meta.fields[fieldName].changed === false) {
@@ -144,7 +136,7 @@ var Form = /** @class */ (function (_super) {
                     }
                 }
                 return true;
-            case FeedbackStrategy.OnFirstSuccess:
+            case "OnFirstSuccess":
                 for (var _b = 0, fieldNames_3 = fieldNames; _b < fieldNames_3.length; _b++) {
                     var fieldName = fieldNames_3[_b];
                     if (this.state.meta.fields[fieldName].succeeded === false) {
@@ -152,7 +144,7 @@ var Form = /** @class */ (function (_super) {
                     }
                 }
                 return true;
-            case FeedbackStrategy.OnFirstSuccessOrFirstBlur:
+            case "OnFirstSuccessOrFirstBlur":
                 for (var _c = 0, fieldNames_4 = fieldNames; _c < fieldNames_4.length; _c++) {
                     var fieldName = fieldNames_4[_c];
                     if (!this.state.meta.fields[fieldName].succeeded &&
@@ -161,7 +153,7 @@ var Form = /** @class */ (function (_super) {
                     }
                 }
                 return true;
-            case FeedbackStrategy.OnSubmit:
+            case "OnSubmit":
                 return this.state.meta.submitted;
             default:
                 assertNever(feedbackStrategy);
@@ -246,7 +238,7 @@ var Form = /** @class */ (function (_super) {
     Form.defaultProps = {
         fieldValidations: {},
         validations: [],
-        feedbackStrategy: FeedbackStrategy.OnFirstBlur,
+        feedbackStrategy: "OnFirstBlur",
     };
     return Form;
 }(React.Component));

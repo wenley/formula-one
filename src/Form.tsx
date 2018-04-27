@@ -48,7 +48,7 @@ export interface FormError<DraftType> {
   fields?: Array<keyof DraftType>;
 }
 
-export type FieldValidator<DraftType> = (x: DraftType | null) => null | string;
+export type FieldValidator<FieldType> = (x: FieldType) => null | string;
 export type FormValidator<DraftType> = (
   x: DraftType
 ) => Array<FormError<DraftType>>;
@@ -366,10 +366,10 @@ export interface FieldProps<DraftType, OutputType> {
   label?: string;
   children: (
     foo: {
-      value: null | OutputType;
+      value: OutputType;
       showError: boolean;
       formState: Readonly<DraftType>;
-      onChange: (newValue: null | OutputType) => void;
+      onChange: (newValue: OutputType) => void;
       onBlur: () => void;
     }
   ) => React.ReactNode;

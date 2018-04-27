@@ -1,6 +1,6 @@
 {
   "name": "formula-one",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Strongly-typed React form state management",
   "author": "Zach Gotsch",
   "license": "MIT",
@@ -11,7 +11,8 @@
   "files": ["dist"],
 
   "scripts": {
-    "build": "rm ./dist/*; tsc --declaration"
+    "build": "rm ./dist/*; tsc --declaration",
+    "prepublishOnly": "npm build"
   },
 
   "peerDependencies": {
