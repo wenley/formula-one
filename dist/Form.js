@@ -21,7 +21,6 @@ function makeNewMeta(draft) {
                 touched: false,
                 changed: false,
                 succeeded: false,
-                validationSucceeded: false,
                 asyncValidationInFlight: false,
             };
             return Object.assign(memo, (_a = {}, _a[key] = metaField, _a));
@@ -42,7 +41,8 @@ var Form = /** @class */ (function (_super) {
                 };
             });
             var errors = _this.makeErrors();
-            var fieldErrorsArray = Object.keys(errors.fieldErrors).reduce(function (memo, error) {
+            var fieldErrorsArray = Object.keys(errors.fieldErrors).reduce(function (memo, key) {
+                var error = errors.fieldErrors[key];
                 return error === null ? memo : memo.concat([error]);
             }, []);
             if (fieldErrorsArray.length === 0 && errors.formErrors.length === 0) {
@@ -59,8 +59,6 @@ var Form = /** @class */ (function (_super) {
                 };
                 var _a;
             }, function () {
-                // tslint:disable
-                // debugger;
                 // set succeeded
                 var formErrors = [];
                 if (_this.props.validations) {
@@ -105,6 +103,20 @@ var Form = /** @class */ (function (_super) {
             formState: this.props.initialValue,
             meta: makeNewMeta(this.props.initialValue),
         });
+    };
+    Form.prototype.render = function () {
+        return (React.createElement(FormContext.Provider, { value: {
+                formState: this.state.formState,
+                // Filthy monomorphization lies
+                // tslint:disable-next-line no-any
+                errors: this.makeErrors(),
+                onChange: this.handleFieldChange,
+                onBlur: this.handleFieldBlur,
+            } }, this.props.children({
+            meta: this.state.meta,
+            formState: this.state.formState,
+            onSubmit: this.handleSubmit,
+        }, this.fields)));
     };
     Object.defineProperty(Form.prototype, "fields", {
         get: function () {
@@ -221,20 +233,6 @@ var Form = /** @class */ (function (_super) {
             var _a, _b;
         });
     };
-    Form.prototype.render = function () {
-        return (React.createElement(FormContext.Provider, { value: {
-                formState: this.state.formState,
-                // Filthy monomorphization lies
-                // tslint:disable-next-line no-any
-                errors: this.makeErrors(),
-                onChange: this.handleFieldChange,
-                onBlur: this.handleFieldBlur,
-            } }, this.props.children({
-            meta: this.state.meta,
-            formState: this.state.formState,
-            onSubmit: this.handleSubmit,
-        }, this.fields)));
-    };
     Form.defaultProps = {
         fieldValidations: {},
         validations: [],
@@ -266,6 +264,7 @@ var Field = /** @class */ (function (_super) {
             var _a = context, formState = _a.formState, onChange = _a.onChange, onBlur = _a.onBlur, errors = _a.errors;
             // This cast is a little gross, but static properties can't reference type params
             // also the typechecker probably can't prove OutputType === DraftType[fieldName]
+            // tslint:disable-next-line no-any
             var value = formState[fieldName];
             var fieldError = errors.fieldErrors[fieldName];
             var relevantFormErrors = errors.formErrors.filter(function (error) {
