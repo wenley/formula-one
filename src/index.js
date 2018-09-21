@@ -8,4 +8,4 @@ export {default as ErrorsHelper} from "./ErrorsHelper";
 export {default as makeField} from "./makeField";
 
 export type {FeedbackStrategy} from "./Form";
-export type {Validation} from "./types";
+export type {Validation, FieldLink} from "./types";
