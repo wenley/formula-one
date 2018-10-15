@@ -9,3 +9,5 @@ export {default as makeField} from "./makeField";
 
 export type {FeedbackStrategy} from "./Form";
 export type {Validation, FieldLink} from "./types";
+
+export * as TestUtils from "./TestUtils";
