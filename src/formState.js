@@ -47,7 +47,7 @@ export function validate<T>(
   return [
     value,
     mapRoot(
-      ({errors, meta}) => ({
+      ({meta}) => ({
         errors: {
           client: newErrors,
           server: "unchecked",

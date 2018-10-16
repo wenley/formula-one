@@ -93,11 +93,10 @@ class ArrayField<E> extends React.Component<Props<E>> {
     index: number,
     newChild: FormState<E>
   ) => {
-    // TODO(zach): validation
     this.props.link.onChange(
-      setChanged(
-        validate(
-          this.props.validation,
+      validate(
+        this.props.validation,
+        setChanged(
           replaceArrayChild(index, newChild, this.props.link.formState)
         )
       )
@@ -141,7 +140,12 @@ class ArrayField<E> extends React.Component<Props<E>> {
       oldTree
     );
 
-    this.props.link.onChange(setChanged(setTouched([newValue, newTree])));
+    this.props.link.onChange(
+      validate(
+        this.props.validation,
+        setChanged(setTouched([newValue, newTree]))
+      )
+    );
   };
 
   removeChildField = (index: number) => {
@@ -153,7 +157,12 @@ class ArrayField<E> extends React.Component<Props<E>> {
       oldTree
     );
 
-    this.props.link.onChange(setChanged(setTouched([newValue, newTree])));
+    this.props.link.onChange(
+      validate(
+        this.props.validation,
+        setChanged(setTouched([newValue, newTree]))
+      )
+    );
   };
 
   moveChildField = (from: number, to: number) => {
@@ -164,7 +173,12 @@ class ArrayField<E> extends React.Component<Props<E>> {
       moveFromTo(from, to, shapedArrayChildren(oldTree)),
       oldTree
     );
-    this.props.link.onChange(setChanged(setTouched([newValue, newTree])));
+    this.props.link.onChange(
+      validate(
+        this.props.validation,
+        setChanged(setTouched([newValue, newTree]))
+      )
+    );
   };
 
   render() {

@@ -2,28 +2,14 @@
 
 import * as React from "react";
 
-import type {
-  MetaField,
-  Err,
-  OnBlur,
-  OnValidation,
-  Extras,
-  FieldLink,
-} from "./types";
+import type {MetaField, OnBlur, OnValidation, Extras, FieldLink} from "./types";
 import {cleanMeta, cleanErrors, type ServerErrors} from "./types";
 import {
   type FormState,
   monoidallyCombineFormStatesForValidation,
   replaceServerErrors,
 } from "./formState";
-import {type Tree} from "./tree";
-import {
-  type ShapedTree,
-  treeFromValue,
-  checkShape,
-  shapedZipWith,
-  setFromKeysObj,
-} from "./shapedTree";
+import {type ShapedTree, treeFromValue, setFromKeysObj} from "./shapedTree";
 
 export type FormContextPayload = {
   shouldShowError: (meta: MetaField) => boolean,
@@ -68,7 +54,7 @@ export type FeedbackStrategy =
 function getShouldShowError(strategy: FeedbackStrategy) {
   switch (strategy) {
     case "Always":
-      return (meta: MetaField) => true;
+      return () => true;
     case "OnFirstTouch":
       return (meta: MetaField) => meta.touched;
     case "OnFirstChange":
@@ -111,7 +97,6 @@ export default class Form<T> extends React.Component<Props<T>, State<T>> {
     value: T,
     errorsObj: null | {[path: string]: Array<string>}
   ): ShapedTree<T, ServerErrors> {
-    let serverErrorsTree: ShapedTree<T, ServerErrors>;
     if (errorsObj != null) {
       try {
         const freshTree = treeFromValue(value, []);

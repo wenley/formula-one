@@ -3,3 +3,4 @@
 [ ] Async validations
 [ ] <Field> typing mystery
 [ ] rename onFoo to handleFoo in some places?
+[ ] enzyme is huge overkill for testing
