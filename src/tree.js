@@ -30,16 +30,10 @@ export function leaf<T>(
   };
 }
 
-type Direction = "left" | "right";
-export type Zipper<T> = {
-  leftChild: Tree<T>,
-  rightChild: Tree<T>,
-  parents: Array<{
-    direction: Direction,
-    value: T,
-    sibling: Tree<T>,
-  }>,
-};
+export type Direction =
+  | {type: "object", key: string}
+  | {type: "array", index: number};
+export type Path = Array<Direction>;
 
 export function strictZipWith<A, B, C>(
   f: (A, B) => C,

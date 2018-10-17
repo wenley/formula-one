@@ -43,11 +43,11 @@ export default function makeField<T>(
         link: {formState, onValidation},
         validation,
       } = this.props;
-      const {errors} = getExtras(this.props.link.formState);
+      const [value] = formState;
+      const {errors} = getExtras(formState);
 
       if (errors.client === "pending") {
-        const [_, newTree] = validate(validation, formState);
-        onValidation(newTree);
+        onValidation([], validation(value));
       }
     }
 

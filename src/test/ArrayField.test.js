@@ -24,13 +24,9 @@ describe("ArrayField", () => {
         expect(validation).toHaveBeenCalledWith(formState[0]);
         expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-        const newTree = link.onValidation.mock.calls[0][0];
-        expect(newTree.data.errors.client).toEqual([]);
-        expect(newTree.data.meta).toMatchObject({
-          touched: false,
-          changed: false,
-          succeeded: true,
-        });
+        const [path, errors] = link.onValidation.mock.calls[0];
+        expect(path).toEqual([]);
+        expect(errors).toEqual([]);
       });
 
       it("Sets errors.client and meta.succeeded when there are errors", () => {
@@ -48,16 +44,9 @@ describe("ArrayField", () => {
         expect(validation).toHaveBeenCalledWith(formState[0]);
         expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-        const newTree = link.onValidation.mock.calls[0][0];
-        expect(newTree.data.errors.client).toEqual([
-          "This is an error",
-          "another error",
-        ]);
-        expect(newTree.data.meta).toMatchObject({
-          touched: false,
-          changed: false,
-          succeeded: false,
-        });
+        const [path, errors] = link.onValidation.mock.calls[0];
+        expect(path).toEqual([]);
+        expect(errors).toEqual(["This is an error", "another error"]);
       });
 
       it("Treats no validation as always passing", () => {
@@ -70,13 +59,9 @@ describe("ArrayField", () => {
 
         expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-        const newTree = link.onValidation.mock.calls[0][0];
-        expect(newTree.data.errors.client).toEqual([]);
-        expect(newTree.data.meta).toMatchObject({
-          touched: false,
-          changed: false,
-          succeeded: true,
-        });
+        const [path, errors] = link.onValidation.mock.calls[0];
+        expect(path).toEqual([]);
+        expect(errors).toEqual([]);
       });
     });
   });
@@ -148,17 +133,13 @@ describe("ArrayField", () => {
       TestRenderer.create(<ArrayField link={link}>{renderFn}</ArrayField>);
 
       const arrayLinks = renderFn.mock.calls[0][0];
-      const newElementTree = mockFormState("")[1];
-      arrayLinks[2].onValidation(newElementTree);
+      arrayLinks[2].onValidation([], ["These are", "some errors"]);
 
       expect(link.onValidation).toHaveBeenCalledTimes(2);
       // Important: the first call to onValidation is for the initial render validation
-      const newArrayTree = link.onValidation.mock.calls[1][0];
-      expect(newArrayTree.data.meta).toMatchObject({
-        touched: false,
-        changed: false,
-      });
-      expect(newArrayTree.children[2]).toBe(newElementTree);
+      const [path, errors] = link.onValidation.mock.calls[1];
+      expect(path).toEqual([{type: "array", index: 2}]);
+      expect(errors).toEqual(["These are", "some errors"]);
     });
 
     it("calls its validation when a child changes", () => {

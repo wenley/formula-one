@@ -2,15 +2,15 @@
 
 import * as React from "react";
 
-import type {FieldLink, Extras} from "../types";
+import type {FieldLink, Extras, ClientErrors} from "../types";
 import type {FormState} from "../formState";
-import type {ShapedTree} from "../shapedTree";
+import type {ShapedTree, ShapedPath} from "../shapedTree";
 
 type Props<T> = {|
   +link: FieldLink<T>,
   +onChange?: (value: T, meta: mixed) => void,
   +onBlur?: () => void,
-  +onValidation?: () => void,
+  +onValidation?: (path: ShapedPath<T>, errors: ClientErrors) => void,
   +children: (link: FieldLink<T>) => React.Node,
 |};
 
@@ -31,13 +31,14 @@ export default class LinkTap<T> extends React.Component<Props<T>> {
     this.props.link.onBlur(newMeta);
   };
 
-  handleValidation: (ShapedTree<T, Extras>) => void = (
-    newMeta: ShapedTree<T, Extras>
+  handleValidation: (ShapedPath<T>, ClientErrors) => void = (
+    path: ShapedPath<T>,
+    errors: ClientErrors
   ) => {
     if (this.props.onValidation) {
-      this.props.onValidation();
+      this.props.onValidation(path, errors);
     }
-    this.props.link.onValidation(newMeta);
+    this.props.link.onValidation(path, errors);
   };
 
   render() {

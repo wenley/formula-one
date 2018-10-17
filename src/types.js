@@ -1,6 +1,6 @@
 // @flow strict
 
-import type {ShapedTree} from "./shapedTree";
+import type {ShapedTree, ShapedPath} from "./shapedTree";
 import {type FormState} from "./formState";
 
 export type ClientErrors = Array<string> | "pending";
@@ -42,7 +42,7 @@ export type Extras = {
 export type OnChange<T> = (FormState<T>) => void;
 export type OnBlur<T> = (ShapedTree<T, Extras>) => void;
 // This seems like it should be ClientError => void, but the new subtree needs to travel up
-export type OnValidation<T> = (ShapedTree<T, Extras>) => void;
+export type OnValidation<T> = (ShapedPath<T>, ClientErrors) => void;
 
 export type FieldLink<T> = {|
   +formState: FormState<T>,

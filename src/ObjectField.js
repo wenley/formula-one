@@ -2,9 +2,8 @@
 
 import * as React from "react";
 
-import type {FieldLink, Validation, Extras} from "./types";
+import type {FieldLink, Validation, Extras, ClientErrors} from "./types";
 import {type FormContextPayload} from "./Form";
-import withFormContext from "./withFormContext";
 import {FormContext} from "./Form";
 import {
   type FormState,
@@ -17,6 +16,7 @@ import {
 } from "./formState";
 import {
   type ShapedTree,
+  type ShapedPath,
   mapRoot,
   dangerouslyReplaceObjectChild,
 } from "./shapedTree";
@@ -35,7 +35,7 @@ function makeLinks<T: {}, V>(
   formState: FormState<T>,
   onChildChange: (string, FormState<V>) => void,
   onChildBlur: (string, ShapedTree<V, Extras>) => void,
-  onChildValidation: (string, ShapedTree<V, Extras>) => void
+  onChildValidation: (string, ShapedPath<V>, ClientErrors) => void
 ): Links<T> {
   const [value] = formState;
   return Object.keys(value).reduce((memo, k) => {
@@ -47,8 +47,8 @@ function makeLinks<T: {}, V>(
       onBlur: childTree => {
         onChildBlur(k, childTree);
       },
-      onValidation: childTree => {
-        onChildValidation(k, childTree);
+      onValidation: (path, errors) => {
+        onChildValidation(k, path, errors);
       },
     };
     memo[k] = l;
@@ -69,11 +69,11 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
       link: {formState, onValidation},
       validation,
     } = this.props;
-    const {errors} = getExtras(this.props.link.formState);
+    const [value] = formState;
+    const {errors} = getExtras(formState);
 
     if (errors.client === "pending") {
-      const [_, newTree] = validate(validation, formState);
-      onValidation(newTree);
+      onValidation([], validation(value));
     }
   }
 
@@ -108,14 +108,19 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
     );
   };
 
-  onChildValidation: <V>(string, ShapedTree<V, Extras>) => void = <V>(
+  onChildValidation: <V>(string, ShapedPath<V>, ClientErrors) => void = <V>(
     key: string,
-    childTree: ShapedTree<V, Extras>
+    childPath: ShapedPath<V>,
+    errors: ClientErrors
   ) => {
-    const [_, tree] = this.props.link.formState;
-    this.props.link.onValidation(
-      dangerouslyReplaceObjectChild(key, childTree, tree)
-    );
+    const extendedPath = [
+      {
+        type: "object",
+        key,
+      },
+      ...childPath,
+    ];
+    this.props.link.onValidation(extendedPath, errors);
   };
 
   render() {

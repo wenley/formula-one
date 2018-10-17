@@ -2,14 +2,24 @@
 
 import * as React from "react";
 
-import type {MetaField, OnBlur, OnValidation, Extras, FieldLink} from "./types";
-import {cleanMeta, cleanErrors, type ServerErrors} from "./types";
+import type {
+  MetaField,
+  OnBlur,
+  OnValidation,
+  Extras,
+  FieldLink,
+  ServerErrors,
+  ClientErrors,
+} from "./types";
+import {cleanMeta, cleanErrors} from "./types";
+import {type FormState, replaceServerErrors} from "./formState";
 import {
-  type FormState,
-  monoidallyCombineFormStatesForValidation,
-  replaceServerErrors,
-} from "./formState";
-import {type ShapedTree, treeFromValue, setFromKeysObj} from "./shapedTree";
+  type ShapedTree,
+  type ShapedPath,
+  treeFromValue,
+  setFromKeysObj,
+  updateAtPath,
+} from "./shapedTree";
 
 export type FormContextPayload = {
   shouldShowError: (meta: MetaField) => boolean,
@@ -149,13 +159,19 @@ export default class Form<T> extends React.Component<Props<T>, State<T>> {
   };
 
   updateTreeForValidation: OnValidation<T> = (
-    newTree: ShapedTree<T, Extras>
+    path: ShapedPath<T>,
+    errors: ClientErrors
   ) => {
-    this.setState(({formState}) => ({
-      formState: monoidallyCombineFormStatesForValidation(formState, [
-        formState[0],
-        newTree,
-      ]),
+    // TODO(zach): Move this into formState.js, it is gross
+    const updater = newErrors => ({errors, meta}) => ({
+      errors: {...errors, client: newErrors},
+      meta: {
+        ...meta,
+        succeeded: newErrors.length === 0 ? true : meta.succeeded,
+      },
+    });
+    this.setState(({formState: [value, tree]}) => ({
+      formState: [value, updateAtPath(path, updater(errors), tree)],
     }));
   };
 

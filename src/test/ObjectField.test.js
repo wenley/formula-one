@@ -24,13 +24,9 @@ describe("ObjectField", () => {
         expect(validation).toHaveBeenCalledWith(formState[0]);
         expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-        const newExtra = link.onValidation.mock.calls[0][0];
-        expect(newExtra.data.errors.client).toEqual([]);
-        expect(newExtra.data.meta).toMatchObject({
-          touched: false,
-          changed: false,
-          succeeded: true,
-        });
+        const [path, errors] = link.onValidation.mock.calls[0];
+        expect(path).toEqual([]);
+        expect(errors).toEqual([]);
       });
 
       it("Sets errors.client and meta.succeeded when there are errors", () => {
@@ -48,13 +44,9 @@ describe("ObjectField", () => {
         expect(validation).toHaveBeenCalledWith(formState[0]);
         expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-        const newExtra = link.onValidation.mock.calls[0][0];
-        expect(newExtra.data.errors.client).toEqual(["This is an error"]);
-        expect(newExtra.data.meta).toMatchObject({
-          touched: false,
-          changed: false,
-          succeeded: false,
-        });
+        const [path, errors] = link.onValidation.mock.calls[0];
+        expect(path).toEqual([]);
+        expect(errors).toEqual(["This is an error"]);
       });
 
       it("Treats no validation as always passing", () => {
@@ -67,13 +59,9 @@ describe("ObjectField", () => {
 
         expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-        const newExtra = link.onValidation.mock.calls[0][0];
-        expect(newExtra.data.errors.client).toEqual([]);
-        expect(newExtra.data.meta).toMatchObject({
-          touched: false,
-          changed: false,
-          succeeded: true,
-        });
+        const [path, errors] = link.onValidation.mock.calls[0];
+        expect(path).toEqual([]);
+        expect(errors).toEqual([]);
       });
     });
   });
@@ -164,17 +152,13 @@ describe("ObjectField", () => {
 
       const objectLinks = renderFn.mock.calls[0][0];
       // call the child onValidation
-      const newChildTree = mockFormState("")[1];
-      objectLinks.string.onValidation(newChildTree);
+      objectLinks.string.onValidation([], ["Some", "errors"]);
 
       expect(link.onValidation).toHaveBeenCalledTimes(2);
       // Important: the first call to onValidation is for the initial render validation
-      const newObjectTree = link.onValidation.mock.calls[1][0];
-      expect(newObjectTree.data.meta).toMatchObject({
-        touched: false,
-        changed: false,
-      });
-      expect(newObjectTree.children.string).toBe(newChildTree);
+      const [path, errors] = link.onValidation.mock.calls[1];
+      expect(path).toEqual([{type: "object", key: "string"}]);
+      expect(errors).toEqual(["Some", "errors"]);
     });
 
     it("calls its own validation when a child changes", () => {

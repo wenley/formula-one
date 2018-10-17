@@ -19,15 +19,9 @@ describe("makeField()ed component", () => {
       expect(validation).toHaveBeenCalledTimes(1);
       expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-      const newTree = link.onValidation.mock.calls[0][0];
-      expect(newTree.data.meta).toMatchObject({
-        touched: false,
-        changed: false,
-        succeeded: true,
-      });
-      expect(newTree.data.errors).toMatchObject({
-        client: [],
-      });
+      const [path, errors] = link.onValidation.mock.calls[0];
+      expect(path).toEqual([]);
+      expect(errors).toEqual([]);
     });
 
     it("Sets errors.client and meta.succeeded when there are errors", () => {
@@ -40,15 +34,9 @@ describe("makeField()ed component", () => {
       expect(validation).toHaveBeenCalledTimes(1);
       expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-      const newTree = link.onValidation.mock.calls[0][0];
-      expect(newTree.data.meta).toMatchObject({
-        touched: false,
-        changed: false,
-        succeeded: false,
-      });
-      expect(newTree.data.errors).toMatchObject({
-        client: ["This is an error"],
-      });
+      const [path, errors] = link.onValidation.mock.calls[0];
+      expect(path).toEqual([]);
+      expect(errors).toEqual(["This is an error"]);
     });
 
     it("Counts as successfully validated if there is no validation", () => {
@@ -59,15 +47,9 @@ describe("makeField()ed component", () => {
 
       expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-      const newTree = link.onValidation.mock.calls[0][0];
-      expect(newTree.data.meta).toMatchObject({
-        touched: false,
-        changed: false,
-        succeeded: true,
-      });
-      expect(newTree.data.errors).toMatchObject({
-        client: [],
-      });
+      const [path, errors] = link.onValidation.mock.calls[0];
+      expect(path).toEqual([]);
+      expect(errors).toEqual([]);
     });
   });
   it("calls the link onChange with new values and correct meta", () => {

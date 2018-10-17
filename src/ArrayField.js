@@ -2,10 +2,11 @@
 
 import * as React from "react";
 
-import type {FieldLink, Validation, Extras} from "./types";
+import type {FieldLink, Validation, Extras, ClientErrors} from "./types";
 import {cleanErrors, cleanMeta} from "./types";
 import {
   type ShapedTree,
+  type ShapedPath,
   treeFromValue,
   dangerouslyReplaceArrayChild,
   mapRoot,
@@ -46,7 +47,7 @@ function makeLinks<E>(
   formState: FormState<Array<E>>,
   onChildChange: (number, FormState<E>) => void,
   onChildBlur: (number, ShapedTree<E, Extras>) => void,
-  onChildValidation: (number, ShapedTree<E, Extras>) => void
+  onChildValidation: (number, ShapedPath<E>, ClientErrors) => void
 ): Links<E> {
   const [oldValue] = formState;
   return oldValue.map((x, i) => {
@@ -58,8 +59,8 @@ function makeLinks<E>(
       onBlur: childTree => {
         onChildBlur(i, childTree);
       },
-      onValidation: childTree => {
-        onChildValidation(i, childTree);
+      onValidation: (childPath, clientErrors) => {
+        onChildValidation(i, childPath, clientErrors);
       },
     };
   });
@@ -70,21 +71,21 @@ class ArrayField<E> extends React.Component<Props<E>> {
     validation: () => [],
   };
 
-  validate() {
+  initialValidate() {
     const {
       link: {formState, onValidation},
       validation,
     } = this.props;
-    const {errors} = getExtras(this.props.link.formState);
+    const [value] = formState;
+    const {errors} = getExtras(formState);
 
     if (errors.client === "pending") {
-      const [_, newTree] = validate(validation, formState);
-      onValidation(newTree);
+      onValidation([], validation(value));
     }
   }
 
   componentDidMount() {
-    this.validate();
+    this.initialValidate();
   }
 
   onChildChange: (number, FormState<E>) => void = (
@@ -111,14 +112,19 @@ class ArrayField<E> extends React.Component<Props<E>> {
     );
   };
 
-  onChildValidation: (number, ShapedTree<E, Extras>) => void = (
+  onChildValidation: (number, ShapedPath<E>, ClientErrors) => void = (
     index,
-    childTree
+    childPath,
+    errors
   ) => {
-    const [_, tree] = this.props.link.formState;
-    this.props.link.onValidation(
-      dangerouslyReplaceArrayChild(index, childTree, tree)
-    );
+    const extendedPath = [
+      {
+        type: "array",
+        index,
+      },
+      ...childPath,
+    ];
+    this.props.link.onValidation(extendedPath, errors);
   };
 
   addChildField: (number, E) => void = (index: number, childValue: E) => {

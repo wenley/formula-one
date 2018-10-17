@@ -3,15 +3,8 @@
 import * as React from "react";
 import type {FieldLink, Validation, Err} from "./types";
 import {mapRoot} from "./shapedTree";
-import {type FormContextPayload} from "./Form";
-import withFormContext from "./withFormContext";
-import {
-  setExtrasTouched,
-  getExtras,
-  setChanged,
-  validate,
-  setClientErrors,
-} from "./formState";
+import {FormContext, type FormContextPayload} from "./Form";
+import {setExtrasTouched, getExtras, setChanged, validate} from "./formState";
 
 type Props<T> = {|
   +link: FieldLink<T>,
@@ -41,17 +34,21 @@ class Field<T> extends React.Component<Props<T>> {
     validation: () => [],
   };
 
-  validate() {
-    const [value] = this.props.link.formState;
-    const {errors} = getExtras(this.props.link.formState);
+  initialValidate() {
+    const {
+      link: {formState, onValidation},
+      validation,
+    } = this.props;
+    const [value] = formState;
+    const {errors} = getExtras(formState);
+
     if (errors.client === "pending") {
-      this.props.link.onValidation(
-        setClientErrors(
-          this.props.validation(value),
-          this.props.link.formState
-        )[1]
-      );
+      onValidation([], validation(value));
     }
+  }
+
+  componentDidMount() {
+    this.initialValidate();
   }
 
   onChange: T => void = (newValue: T) => {
@@ -80,4 +77,15 @@ class Field<T> extends React.Component<Props<T>> {
   }
 }
 
-export default withFormContext(Field);
+export default function(
+  props: $Diff<
+    React.ElementConfig<typeof Field>,
+    {+formContext: FormContextPayload}
+  >
+) {
+  return (
+    <FormContext.Consumer>
+      {formContext => <Field {...props} formContext={formContext} />}
+    </FormContext.Consumer>
+  );
+}

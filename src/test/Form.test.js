@@ -18,7 +18,7 @@ class NaughtyRenderingInput extends React.Component<{|
   onBlur: () => void,
 |}> {
   componentDidMount() {
-    this.props.onChange("hello from render");
+    this.props.onChange("hello from cDM()");
   }
   render() {
     return null;
@@ -162,16 +162,68 @@ describe("Form", () => {
       // Cross your fingers
       const root: any = forgetShape(renderer.root.instance.state.formState[1]);
       expect(root.data.errors.client).toEqual(["Toplevel error"]);
+      expect(root.data.meta).toMatchObject({
+        succeeded: false,
+      });
       const errors = root.children.errors;
       expect(errors.data.errors.client).toEqual(["Two", "errors"]);
       const noErrors = root.children.noErrors;
       expect(noErrors.data.errors.client).toEqual([]);
+      expect(noErrors.data.meta).toMatchObject({
+        succeeded: true,
+      });
       const array = root.children.array;
       expect(array.data.errors.client).toEqual(["Array errors"]);
       const array0 = array.children[0];
       expect(array0.data.errors.client).toEqual([]);
       const array1 = array.children[1];
       expect(array1.data.errors.client).toEqual(["Errors on the second item"]);
+    });
+
+    it("doesn't break on validation when given an input with bad behaviour", () => {
+      const onSubmit = jest.fn();
+      const renderer = TestRenderer.create(
+        <Form
+          initialValue={{
+            naughty: "foo",
+            nice: "bar",
+          }}
+          feedbackStrategy="OnFirstTouch"
+          onSubmit={onSubmit}
+          serverErrors={null}
+        >
+          {link => (
+            <ObjectField link={link} validation={() => ["Toplevel error"]}>
+              {link => (
+                <React.Fragment>
+                  <NaughtyRenderingField
+                    link={link.naughty}
+                    validation={() => ["Naughty", "errors"]}
+                  />
+                  <TestField
+                    link={link.nice}
+                    validation={() => ["Nice", "errors"]}
+                  />
+                </React.Fragment>
+              )}
+            </ObjectField>
+          )}
+        </Form>
+      );
+
+      const formState = renderer.root.instance.state.formState;
+      expect(formState[0]).toEqual({
+        naughty: "hello from cDM()",
+        nice: "bar",
+      });
+
+      // Cross your fingers
+      const root: any = formState[1];
+      expect(root.data.errors.client).toEqual(["Toplevel error"]);
+      const naughty = root.children.naughty;
+      expect(naughty.data.errors.client).toEqual(["Naughty", "errors"]);
+      const nice = root.children.nice;
+      expect(nice.data.errors.client).toEqual(["Nice", "errors"]);
     });
 
     it("changes when link calls onChange", () => {
@@ -195,6 +247,7 @@ describe("Form", () => {
 
       expect(renderer.root.instance.state.formState).toBe(newFormState);
     });
+
     it("changes when link calls onBlur", () => {
       const onSubmit = jest.fn();
       const renderFn = jest.fn(() => null);

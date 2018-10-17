@@ -1,12 +1,16 @@
 // @flow strict
 
-import {type Tree, leaf, strictZipWith} from "./tree";
+import {type Tree, type Path, leaf, strictZipWith} from "./tree";
 import invariant from "./utils/invariant";
 import {replaceAt} from "./utils/array";
 
 // Shape is a phantom type used to track the shape of the Tree
 // eslint-disable-next-line no-unused-vars
 export opaque type ShapedTree<Shape, Data> = Tree<Data>;
+
+// A path on a shaped tree
+// eslint-disable-next-line no-unused-vars
+export type ShapedPath<Shape> = Path;
 
 // Take shape from value, data from nodeData
 export function treeFromValue<T, NodeData>(
@@ -107,6 +111,66 @@ export function setFromKeysObj<T, Node>(
     (memo: ShapedTree<T, Node>, key: string) => setKey(key, keysObj[key], memo),
     tree
   );
+}
+
+export function updateAtPath<T, Node>(
+  path: ShapedPath<T>,
+  updater: Node => Node,
+  tree: ShapedTree<T, Node>
+): ShapedTree<T, Node> {
+  if (path.length === 0) {
+    if (tree.type === "object") {
+      return {
+        type: "object",
+        data: updater(tree.data),
+        children: tree.children,
+      };
+    }
+    if (tree.type === "array") {
+      return {
+        type: "array",
+        data: updater(tree.data),
+        children: tree.children,
+      };
+    }
+    return {
+      type: "leaf",
+      data: updater(tree.data),
+    };
+  }
+
+  const [firstStep, ...restStep] = path;
+  if (tree.type === "leaf") {
+    throw new Error("Theres more key, but not more Tree to match it against");
+  }
+
+  if (tree.type === "array") {
+    invariant(
+      firstStep.type === "array",
+      "Trying to take a non-array path into an array"
+    );
+    const newChild = updateAtPath(
+      restStep,
+      updater,
+      tree.children[firstStep.index]
+    );
+    // $FlowFixMe(zach): I think this is safe, might need GADTs for the type checker to understand why
+    return dangerouslyReplaceArrayChild(firstStep.index, newChild, tree);
+  }
+  if (tree.type === "object") {
+    invariant(
+      firstStep.type === "object",
+      "Trying to take a non-object path into an object"
+    );
+    const newChild = updateAtPath(
+      restStep,
+      updater,
+      tree.children[firstStep.key]
+    );
+    // $FlowFixMe(zach): I think this is safe, might need GADTs for the type checker to understand why
+    return dangerouslyReplaceObjectChild(firstStep.key, newChild, tree);
+  }
+  throw new Error("unreachable");
 }
 
 export function checkShape<T, Node>(
