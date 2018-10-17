@@ -105,10 +105,10 @@ export default class Form<T> extends React.Component<Props<T>, State<T>> {
           T,
           ServerErrors
         >);
-      } catch (_) {
-        console.error(
-          "Server errors don't match the shape of value.\nThey will be ignored"
-        );
+      } catch (e) {
+        console.error("Error applying server errors to value!");
+        console.error(`\t${e.message}`);
+        console.error("The server errors will be ignored.");
         return treeFromValue(value, "unchecked");
       }
     } else {

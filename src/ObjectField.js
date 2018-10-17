@@ -64,21 +64,21 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
     validation: () => [],
   };
 
-  validate() {
-    const [value] = this.props.link.formState;
+  initialValidate() {
+    const {
+      link: {formState, onValidation},
+      validation,
+    } = this.props;
     const {errors} = getExtras(this.props.link.formState);
+
     if (errors.client === "pending") {
-      this.props.link.onValidation(
-        setClientErrors(
-          this.props.validation(value),
-          this.props.link.formState
-        )[1]
-      );
+      const [_, newTree] = validate(validation, formState);
+      onValidation(newTree);
     }
   }
 
   componentDidMount() {
-    this.validate();
+    this.initialValidate();
   }
 
   onChildChange: <V>(string, FormState<V>) => void = <V>(

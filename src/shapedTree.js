@@ -47,6 +47,17 @@ function setKey<T, Node>(
   value: Node,
   tree: ShapedTree<T, Node>
 ): ShapedTree<T, Node> {
+  if (key[0] !== "/") {
+    throw new Error("Error paths must start with forward-slash");
+  }
+  return _setKey(key.slice(1), value, tree);
+}
+
+function _setKey<T, Node>(
+  key: string,
+  value: Node,
+  tree: ShapedTree<T, Node>
+): ShapedTree<T, Node> {
   if (key === "") {
     return mapRoot(() => value, tree);
   }
@@ -62,13 +73,13 @@ function setKey<T, Node>(
       index.toString() === firstPart,
       "Key indexing into an array is not a number"
     );
-    invariant(index > 0, "Key indexing into array is negative");
+    invariant(index >= 0, "Key indexing into array is negative");
     invariant(
       index < tree.children.length,
       "Key indexing array is outside array bounds"
     );
 
-    const newChild = setKey(restParts.join("/"), value, tree.children[index]);
+    const newChild = _setKey(restParts.join("/"), value, tree.children[index]);
     // $FlowFixMe(zach): I think this is safe, might need GADTs for the type checker to understand why
     return dangerouslyReplaceArrayChild(index, newChild, tree);
   }
@@ -78,7 +89,7 @@ function setKey<T, Node>(
       "Key indexing into object does not exist"
     );
 
-    const newChild = setKey(
+    const newChild = _setKey(
       restParts.join("/"),
       value,
       tree.children[firstPart]

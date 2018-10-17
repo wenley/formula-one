@@ -8,23 +8,73 @@ import {expectLink, mockLink, mockFormState} from "./tools";
 
 describe("ObjectField", () => {
   describe("ObjectField is a field", () => {
-    it("validates on mount", () => {
-      const validation = jest.fn(() => ["This is an error"]);
-      const formState = mockFormState({inner: "value"});
-      const link = mockLink(formState);
+    describe("validates on mount", () => {
+      it("Sets errors.client and meta.succeeded when there are no errors", () => {
+        const validation = jest.fn(() => []);
+        const formState = mockFormState({inner: "value"});
+        const link = mockLink(formState);
 
-      TestRenderer.create(
-        <ObjectField link={link} validation={validation}>
-          {jest.fn(() => null)}
-        </ObjectField>
-      );
+        TestRenderer.create(
+          <ObjectField link={link} validation={validation}>
+            {jest.fn(() => null)}
+          </ObjectField>
+        );
 
-      expect(validation).toHaveBeenCalledTimes(1);
-      expect(validation).toHaveBeenCalledWith(formState[0]);
-      expect(link.onValidation).toHaveBeenCalledTimes(1);
+        expect(validation).toHaveBeenCalledTimes(1);
+        expect(validation).toHaveBeenCalledWith(formState[0]);
+        expect(link.onValidation).toHaveBeenCalledTimes(1);
 
-      const newExtra = link.onValidation.mock.calls[0][0];
-      expect(newExtra.data.errors.client).toEqual(["This is an error"]);
+        const newExtra = link.onValidation.mock.calls[0][0];
+        expect(newExtra.data.errors.client).toEqual([]);
+        expect(newExtra.data.meta).toMatchObject({
+          touched: false,
+          changed: false,
+          succeeded: true,
+        });
+      });
+
+      it("Sets errors.client and meta.succeeded when there are errors", () => {
+        const validation = jest.fn(() => ["This is an error"]);
+        const formState = mockFormState({inner: "value"});
+        const link = mockLink(formState);
+
+        TestRenderer.create(
+          <ObjectField link={link} validation={validation}>
+            {jest.fn(() => null)}
+          </ObjectField>
+        );
+
+        expect(validation).toHaveBeenCalledTimes(1);
+        expect(validation).toHaveBeenCalledWith(formState[0]);
+        expect(link.onValidation).toHaveBeenCalledTimes(1);
+
+        const newExtra = link.onValidation.mock.calls[0][0];
+        expect(newExtra.data.errors.client).toEqual(["This is an error"]);
+        expect(newExtra.data.meta).toMatchObject({
+          touched: false,
+          changed: false,
+          succeeded: false,
+        });
+      });
+
+      it("Treats no validation as always passing", () => {
+        const formState = mockFormState({inner: "value"});
+        const link = mockLink(formState);
+
+        TestRenderer.create(
+          <ObjectField link={link}>{jest.fn(() => null)}</ObjectField>
+        );
+
+        expect(link.onValidation).toHaveBeenCalledTimes(1);
+
+        const newExtra = link.onValidation.mock.calls[0][0];
+        expect(newExtra.data.errors.client).toEqual([]);
+        expect(newExtra.data.meta).toMatchObject({
+          touched: false,
+          changed: false,
+          succeeded: true,
+        });
+      });
     });
   });
 

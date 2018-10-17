@@ -73,15 +73,15 @@ class ArrayField<E> extends React.Component<Props<E>> {
   };
 
   validate() {
-    const [value] = this.props.link.formState;
+    const {
+      link: {formState, onValidation},
+      validation,
+    } = this.props;
     const {errors} = getExtras(this.props.link.formState);
+
     if (errors.client === "pending") {
-      this.props.link.onValidation(
-        setClientErrors(
-          this.props.validation(value),
-          this.props.link.formState
-        )[1]
-      );
+      const [_, newTree] = validate(validation, formState);
+      onValidation(newTree);
     }
   }
 
