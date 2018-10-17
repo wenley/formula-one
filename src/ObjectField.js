@@ -13,7 +13,6 @@ import {
   objectChild,
   validate,
   getExtras,
-  setClientErrors,
 } from "./formState";
 import {
   type ShapedTree,

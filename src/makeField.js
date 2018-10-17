@@ -5,13 +5,7 @@ import type {FieldLink, Validation, Err} from "./types";
 import {mapRoot} from "./shapedTree";
 import {type FormContextPayload} from "./Form";
 import withFormContext from "./withFormContext";
-import {
-  setExtrasTouched,
-  getExtras,
-  setChanged,
-  validate,
-  setClientErrors,
-} from "./formState";
+import {setExtrasTouched, getExtras, setChanged, validate} from "./formState";
 
 function getErrors(errors: Err) {
   let flatErrors = [];

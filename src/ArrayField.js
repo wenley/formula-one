@@ -24,7 +24,6 @@ import {
   arrayChild,
   validate,
   getExtras,
-  setClientErrors,
 } from "./formState";
 
 type ToFieldLink = <T>(T) => FieldLink<T>;
