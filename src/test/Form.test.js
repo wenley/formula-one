@@ -9,6 +9,22 @@ import ArrayField from "../ArrayField";
 import {expectLink, mockFormState} from "./tools";
 import TestField from "./TestField";
 import {forgetShape} from "../shapedTree";
+import makeField from "../makeField";
+
+class NaughtyRenderingInput extends React.Component<{|
+  value: string,
+  errors: $ReadOnlyArray<string>,
+  onChange: string => void,
+  onBlur: () => void,
+|}> {
+  componentDidMount() {
+    this.props.onChange("hello from render");
+  }
+  render() {
+    return null;
+  }
+}
+const NaughtyRenderingField = makeField(NaughtyRenderingInput);
 
 describe("Form", () => {
   describe("Form manages form state", () => {

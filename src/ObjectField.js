@@ -5,6 +5,7 @@ import * as React from "react";
 import type {FieldLink, Validation, Extras} from "./types";
 import {type FormContextPayload} from "./Form";
 import withFormContext from "./withFormContext";
+import {FormContext} from "./Form";
 import {
   type FormState,
   setChanged,
@@ -128,4 +129,16 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
   }
 }
 
-export default withFormContext(ObjectField);
+// Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
+export default function(
+  props: $Diff<
+    React.ElementConfig<typeof ObjectField>,
+    {+formContext: FormContextPayload}
+  >
+) {
+  return (
+    <FormContext.Consumer>
+      {formContext => <ObjectField {...props} formContext={formContext} />}
+    </FormContext.Consumer>
+  );
+}

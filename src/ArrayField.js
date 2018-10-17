@@ -13,8 +13,7 @@ import {
   shapedArrayChildren,
 } from "./shapedTree";
 import {removeAt, moveFromTo, insertAt} from "./utils/array";
-import {type FormContextPayload} from "./Form";
-import withFormContext from "./withFormContext";
+import {FormContext, type FormContextPayload} from "./Form";
 import {
   type FormState,
   replaceArrayChild,
@@ -197,4 +196,16 @@ class ArrayField<E> extends React.Component<Props<E>> {
   }
 }
 
-export default withFormContext(ArrayField);
+// Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
+export default function(
+  props: $Diff<
+    React.ElementConfig<typeof ArrayField>,
+    {+formContext: FormContextPayload}
+  >
+) {
+  return (
+    <FormContext.Consumer>
+      {formContext => <ArrayField {...props} formContext={formContext} />}
+    </FormContext.Consumer>
+  );
+}

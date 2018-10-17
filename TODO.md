@@ -1,6 +1,4 @@
-[ ] Librarification (exports)
-[ ] Tests
-[ ] Async validations
-[ ] <Field> typing mystery
-[ ] rename onFoo to handleFoo in some places?
-[ ] enzyme is huge overkill for testing
+- Rework initial validations
+- Async validations
+- <Field> typing mystery - https://github.com/facebook/flow/issues/6903
+- rename onFoo to handleFoo in some places?

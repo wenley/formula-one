@@ -3,8 +3,7 @@
 import * as React from "react";
 import type {FieldLink, Validation, Err} from "./types";
 import {mapRoot} from "./shapedTree";
-import {type FormContextPayload} from "./Form";
-import withFormContext from "./withFormContext";
+import {FormContext, type FormContextPayload} from "./Form";
 import {setExtrasTouched, getExtras, setChanged, validate} from "./formState";
 
 function getErrors(errors: Err) {
@@ -25,13 +24,11 @@ export default function makeField<T>(
     onChange: T => void,
     onBlur: () => void,
   |}>
-): Class<
-  React.Component<{|
-    link: FieldLink<T>,
-    // TODO(zach): This shouldn't need to be optional
-    validation?: Validation<T>,
-  |}>
-> {
+): React.ComponentType<{|
+  link: FieldLink<T>,
+  // TODO(zach): This shouldn't need to be optional
+  validation?: Validation<T>,
+|}> {
   class Field extends React.Component<{|
     link: FieldLink<T>,
     validation: Validation<T>,
@@ -91,5 +88,17 @@ export default function makeField<T>(
     }
   }
 
-  return withFormContext(Field);
+  // Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
+  return function(
+    props: $Diff<
+      React.ElementConfig<typeof Field>,
+      {+formContext: FormContextPayload}
+    >
+  ) {
+    return (
+      <FormContext.Consumer>
+        {formContext => <Field {...props} formContext={formContext} />}
+      </FormContext.Consumer>
+    );
+  };
 }
