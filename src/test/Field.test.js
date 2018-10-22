@@ -7,7 +7,7 @@ import {mockFormState, mockLink} from "./tools";
 import TestField, {TestInput} from "./TestField";
 import {mapRoot} from "../shapedTree";
 
-describe("makeField()ed component", () => {
+describe("Field", () => {
   describe("validates on mount", () => {
     it("Sets errors.client and meta.succeeded when there are no errors", () => {
       const formState = mockFormState("Hello world.");
