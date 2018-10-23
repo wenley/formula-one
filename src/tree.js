@@ -35,6 +35,35 @@ export type Direction =
   | {type: "array", index: number};
 export type Path = Array<Direction>;
 
+export function pathFromPathString(pathString: string): Path {
+  if (pathString[0] !== "/") {
+    throw new Error("Error paths must start with forward-slash");
+  }
+
+  if (pathString === "/") {
+    return [];
+  }
+
+  return pathString
+    .slice(1)
+    .split("/")
+    .map(keyPart => {
+      // This might be dangerous, since it means you can't use numbers as object
+      // keys. This is acceptable for now.
+      if (!isNaN(keyPart)) {
+        return {
+          type: "array",
+          index: Number.parseInt(keyPart, 10),
+        };
+      } else {
+        return {
+          type: "object",
+          key: keyPart,
+        };
+      }
+    });
+}
+
 export function strictZipWith<A, B, C>(
   f: (A, B) => C,
   left: Tree<A>,
@@ -84,4 +113,29 @@ export function strictZipWith<A, B, C>(
   }
 
   throw new Error("Tried to zip two nodes of different type");
+}
+
+// A tree is a functor
+export function mapTree<A, B>(f: A => B, tree: Tree<A>): Tree<B> {
+  if (tree.type === "object") {
+    return {
+      type: "object",
+      data: f(tree.data),
+      children: Object.keys(tree.children).reduce(
+        (memo, key) => ({...memo, [key]: mapTree(f, tree.children[key])}),
+        {}
+      ),
+    };
+  } else if (tree.type === "array") {
+    return {
+      type: "array",
+      data: f(tree.data),
+      children: tree.children.map(child => mapTree(f, child)),
+    };
+  } else {
+    return {
+      type: "leaf",
+      data: f(tree.data),
+    };
+  }
 }

@@ -1,6 +1,6 @@
 // @flow strict
 
-import {type Tree, type Path, leaf, strictZipWith} from "./tree";
+import {type Tree, type Path, leaf, strictZipWith, mapTree} from "./tree";
 import invariant from "./utils/invariant";
 import {replaceAt} from "./utils/array";
 
@@ -9,8 +9,10 @@ import {replaceAt} from "./utils/array";
 export opaque type ShapedTree<Shape, Data> = Tree<Data>;
 
 // A path on a shaped tree
+// TODO(zach): Make this opaque
 // eslint-disable-next-line no-unused-vars
-export type ShapedPath<Shape> = Path;
+export /* opaque */ type ShapedPath<Shape> = Path;
+export const rootPath: <T>() => ShapedPath<T> = () => [];
 
 // Take shape from value, data from nodeData
 export function treeFromValue<T, NodeData>(
@@ -46,71 +48,35 @@ export function treeFromValue<T, NodeData>(
   };
 }
 
-function setKey<T, Node>(
-  key: string,
-  value: Node,
-  tree: ShapedTree<T, Node>
-): ShapedTree<T, Node> {
-  if (key[0] !== "/") {
-    throw new Error("Error paths must start with forward-slash");
-  }
-  return _setKey(key.slice(1), value, tree);
-}
-
-function _setKey<T, Node>(
-  key: string,
-  value: Node,
-  tree: ShapedTree<T, Node>
-): ShapedTree<T, Node> {
-  if (key === "") {
-    return mapRoot(() => value, tree);
+export function shapePath<T>(data: T, path: Path): null | ShapedPath<T> {
+  if (path.length === 0) {
+    return path;
   }
 
-  const [firstPart, ...restParts] = key.split("/");
-
-  if (tree.type === "leaf") {
-    throw new Error("Theres more key, but not more Tree to match it against");
+  const [firstPart, ...restParts] = path;
+  if (
+    firstPart.type === "object" &&
+    Object.hasOwnProperty.call(data, firstPart.key)
+  ) {
+    // $FlowFixMe: This is safe
+    const restPath = shapePath(data[firstPart.key], restParts);
+    if (restPath === null) {
+      return null;
+    }
+    return [firstPart, ...restPath];
+  } else if (
+    firstPart.type === "array" &&
+    Array.isArray(data) &&
+    firstPart.index < data.length
+  ) {
+    const restPath = shapePath(data[firstPart.index], restParts);
+    if (restPath === null) {
+      return null;
+    }
+    return [firstPart, ...restPath];
   }
-  if (tree.type === "array") {
-    const index = Number.parseInt(firstPart);
-    invariant(
-      index.toString() === firstPart,
-      "Key indexing into an array is not a number"
-    );
-    invariant(index >= 0, "Key indexing into array is negative");
-    invariant(
-      index < tree.children.length,
-      "Key indexing array is outside array bounds"
-    );
 
-    const newChild = _setKey(restParts.join("/"), value, tree.children[index]);
-    // $FlowFixMe(zach): I think this is safe, might need GADTs for the type checker to understand why
-    return dangerouslyReplaceArrayChild(index, newChild, tree);
-  }
-  if (tree.type === "object") {
-    invariant(
-      tree.children.hasOwnProperty(firstPart),
-      "Key indexing into object does not exist"
-    );
-
-    const newChild = _setKey(
-      restParts.join("/"),
-      value,
-      tree.children[firstPart]
-    );
-    // $FlowFixMe(zach): I think this is safe, might need GADTs for the type checker to understand why
-    return dangerouslyReplaceObjectChild(firstPart, newChild, tree);
-  }
-  throw new Error("unreachable");
-}
-export function setFromKeysObj<T, Node>(
-  keysObj: {[path: string]: Node},
-  tree: ShapedTree<T, Node>
-): ShapedTree<T, Node> {
-  return Object.keys(keysObj).reduce(
-    (memo: ShapedTree<T, Node>, key: string) => setKey(key, keysObj[key], memo),
-    tree
-  );
+  return null;
 }
 
 export function updateAtPath<T, Node>(
@@ -118,6 +84,7 @@ export function updateAtPath<T, Node>(
   updater: Node => Node,
   tree: ShapedTree<T, Node>
 ): ShapedTree<T, Node> {
+  // console.log("updateAtPath()", path, tree);
   if (path.length === 0) {
     if (tree.type === "object") {
       return {
@@ -323,4 +290,12 @@ export function shapedZipWith<T, A, B, C>(
 ): ShapedTree<T, C> {
   // Don't actually need the checks here if our invariant holds
   return strictZipWith(f, left, right);
+}
+
+// Mapping doesn't change the shape
+export function mapShapedTree<T, A, B>(
+  f: A => B,
+  tree: ShapedTree<T, A>
+): ShapedTree<T, B> {
+  return mapTree(f, tree);
 }

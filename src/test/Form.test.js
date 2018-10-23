@@ -5,11 +5,11 @@ import TestRenderer from "react-test-renderer";
 import Form, {FormContext} from "../Form";
 import ObjectField from "../ObjectField";
 import ArrayField from "../ArrayField";
+import Field from "../Field";
 
 import {expectLink, mockFormState} from "./tools";
 import TestField from "./TestField";
 import {forgetShape} from "../shapedTree";
-import makeField from "../makeField";
 
 class NaughtyRenderingInput extends React.Component<{|
   value: string,
@@ -24,7 +24,20 @@ class NaughtyRenderingInput extends React.Component<{|
     return null;
   }
 }
-const NaughtyRenderingField = makeField(NaughtyRenderingInput);
+function NaughtyRenderingField(props) {
+  return (
+    <Field {...props}>
+      {(value, errors, onChange, onBlur) => (
+        <NaughtyRenderingInput
+          value={value}
+          errors={errors}
+          onChange={onChange}
+          onBlur={onBlur}
+        />
+      )}
+    </Field>
+  );
+}
 
 describe("Form", () => {
   describe("Form manages form state", () => {
@@ -105,8 +118,59 @@ describe("Form", () => {
       expect(complex1.data.errors.server).toEqual([]);
     });
 
-    xit("??? resets the server errors when they change -- this actually belongs lower?", () => {
-      throw "TODO";
+    it("updates the server errors", () => {
+      const onSubmit = jest.fn();
+      const renderFn = jest.fn(() => null);
+      const renderer = TestRenderer.create(
+        <Form
+          initialValue={{
+            array: [],
+          }}
+          feedbackStrategy="OnFirstTouch"
+          onSubmit={onSubmit}
+          serverErrors={{
+            "/array": ["Cannot be empty"],
+          }}
+        >
+          {link => <ObjectField link={link}>{renderFn}</ObjectField>}
+        </Form>
+      );
+
+      expect(renderFn).toHaveBeenCalled();
+
+      const links = renderFn.mock.calls[0][0];
+      const newFormState = mockFormState([1]);
+      links.array.onChange(newFormState);
+
+      const anotherRenderFn = jest.fn();
+      renderer.update(
+        <Form
+          initialValue={{
+            array: [],
+          }}
+          feedbackStrategy="OnFirstTouch"
+          onSubmit={onSubmit}
+          serverErrors={{
+            "/array": [],
+            "/array/0": ["inner error"],
+          }}
+        >
+          {anotherRenderFn}
+        </Form>
+      );
+
+      expect(anotherRenderFn).toHaveBeenCalled();
+
+      const link = anotherRenderFn.mock.calls[0][0];
+
+      const [_, tree] = link.formState;
+      // Cross your fingers
+      const root: any = tree;
+      expect(root.data.errors.server).toEqual([]);
+      const array = root.children.array;
+      expect(array.data.errors.server).toEqual([]);
+      const array0 = array.children[0];
+      expect(array0.data.errors.server).toEqual(["inner error"]);
     });
 
     it("collects the initial validations", () => {

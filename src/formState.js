@@ -231,10 +231,6 @@ export function replaceServerErrors<T>(
 ): FormState<T> {
   return [
     formState[0],
-    shapedZipWith(
-      (es, oldExtras) => replaceServerErrorsExtra(es, oldExtras),
-      serverErrors,
-      formState[1]
-    ),
+    shapedZipWith(replaceServerErrorsExtra, serverErrors, formState[1]),
   ];
 }

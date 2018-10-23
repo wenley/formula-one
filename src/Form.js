@@ -8,18 +8,19 @@ import type {
   OnValidation,
   Extras,
   FieldLink,
-  ServerErrors,
   ClientErrors,
 } from "./types";
 import {cleanMeta, cleanErrors} from "./types";
-import {type FormState, replaceServerErrors} from "./formState";
+import {type FormState} from "./formState";
 import {
   type ShapedTree,
   type ShapedPath,
   treeFromValue,
-  setFromKeysObj,
+  shapePath,
   updateAtPath,
+  mapShapedTree,
 } from "./shapedTree";
+import {pathFromPathString} from "./tree";
 
 export type FormContextPayload = {
   shouldShowError: (meta: MetaField) => boolean,
@@ -36,21 +37,55 @@ export const FormContext: React.Context<
   submitted: true,
 });
 
-function newFormState<T>(
-  value: T,
-  serverErrors: null | ShapedTree<T, ServerErrors>
+function applyServerErrorsToFormState<T>(
+  serverErrors: null | {[path: string]: Array<string>},
+  formState: FormState<T>
 ): FormState<T> {
-  const cleanState = [
-    value,
-    treeFromValue(value, {
-      errors: cleanErrors,
-      meta: cleanMeta,
-    }),
-  ];
-  if (serverErrors != null) {
-    return replaceServerErrors(serverErrors, cleanState);
+  const [value, oldTree] = formState;
+
+  let tree: ShapedTree<T, Extras>;
+  if (serverErrors !== null) {
+    // If keys do not appear, no errors
+    tree = mapShapedTree(
+      ({errors, meta}) => ({
+        errors: {...errors, server: []},
+        meta,
+      }),
+      oldTree
+    );
+    Object.keys(serverErrors).forEach(key => {
+      const newErrors: Array<string> = serverErrors[key];
+      const path = shapePath(value, pathFromPathString(key));
+
+      if (path != null) {
+        // TODO(zach): make some helper functions that do this
+        tree = updateAtPath(
+          path,
+          ({errors, meta}) => ({
+            errors: {...errors, server: newErrors},
+            meta,
+          }),
+          tree
+        );
+      } else {
+        console.error(
+          `Warning: couldn't match error with path ${key} to value ${JSON.stringify(
+            value
+          )}`
+        );
+      }
+    });
+  } else {
+    tree = mapShapedTree(
+      ({errors, meta}) => ({
+        errors: {...errors, server: []},
+        meta,
+      }),
+      oldTree
+    );
   }
-  return cleanState;
+
+  return [value, tree];
 }
 
 export type FeedbackStrategy =
@@ -91,50 +126,31 @@ type State<T> = {
 export default class Form<T> extends React.Component<Props<T>, State<T>> {
   static getDerivedStateFromProps(props: Props<T>, state: State<T>) {
     if (props.serverErrors !== state.oldServerErrors) {
-      const serverErrorsTree = Form.makeServerErrorTree(
-        state.formState[0],
-        props.serverErrors
+      const newFormState = applyServerErrorsToFormState(
+        props.serverErrors,
+        state.formState
       );
       return {
-        formState: replaceServerErrors(serverErrorsTree, state.formState),
+        formState: newFormState,
         oldServerErrors: props.serverErrors,
       };
     }
     return null;
   }
 
-  static makeServerErrorTree<T>(
-    value: T,
-    errorsObj: null | {[path: string]: Array<string>}
-  ): ShapedTree<T, ServerErrors> {
-    if (errorsObj != null) {
-      try {
-        const freshTree = treeFromValue(value, []);
-        // TODO(zach): Variance problems $FlowFixMe
-        return (setFromKeysObj(errorsObj, freshTree): ShapedTree<
-          T,
-          ServerErrors
-        >);
-      } catch (e) {
-        console.error("Error applying server errors to value!");
-        console.error(`\t${e.message}`);
-        console.error("The server errors will be ignored.");
-        return treeFromValue(value, "unchecked");
-      }
-    } else {
-      return treeFromValue(value, "unchecked");
-    }
-  }
-
   constructor(props: Props<T>) {
     super(props);
 
-    const serverErrors = Form.makeServerErrorTree(
+    const freshTree = treeFromValue(props.initialValue, {
+      errors: cleanErrors,
+      meta: cleanMeta,
+    });
+    const formState = applyServerErrorsToFormState(props.serverErrors, [
       props.initialValue,
-      props.serverErrors
-    );
+      freshTree,
+    ]);
     this.state = {
-      formState: newFormState(props.initialValue, serverErrors),
+      formState,
       pristine: true,
       submitted: false,
       oldServerErrors: props.serverErrors,
