@@ -10,4 +10,4 @@ export {default as Field} from "./Field";
 export type {FeedbackStrategy} from "./Form";
 export type {Validation, FieldLink} from "./types";
 
-export * as TestUtils from "./TestUtils";
+export * as TestUtils from "./testutils";
