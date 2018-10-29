@@ -483,7 +483,50 @@ describe("Form", () => {
     linkOnSubmit();
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
-    expect(onSubmit).toHaveBeenLastCalledWith(1);
+    expect(onSubmit).toHaveBeenLastCalledWith(1, undefined);
+  });
+
+  it("Calls onSubmit with extra info when submitted", () => {
+    const onSubmit = jest.fn();
+    const renderFn = jest.fn();
+    TestRenderer.create(
+      <Form
+        initialValue={1}
+        feedbackStrategy="OnFirstTouch"
+        onSubmit={onSubmit}
+        serverErrors={{"/": ["Server error", "Another server error"]}}
+      >
+        {renderFn}
+      </Form>
+    );
+
+    expect(onSubmit).toHaveBeenCalledTimes(0);
+
+    const linkOnSubmit = renderFn.mock.calls[0][1];
+    linkOnSubmit("extra");
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenLastCalledWith(expect.anything(), "extra");
+  });
+
+  it("Enforces types on onSubmit", () => {
+    const onSubmit: (value: number, extra: "extra") => void = () => {};
+    TestRenderer.create(
+      <Form
+        initialValue={1}
+        feedbackStrategy="OnFirstTouch"
+        onSubmit={onSubmit}
+        serverErrors={{"/": ["Server error", "Another server error"]}}
+      >
+        {(_, onSubmit) => {
+          // $ExpectError
+          onSubmit();
+          // $ExpectError
+          onSubmit("hello");
+          onSubmit("extra");
+        }}
+      </Form>
+    );
   });
 
   it("Calls onChange when the value is changed", () => {

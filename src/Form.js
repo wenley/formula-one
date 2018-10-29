@@ -110,16 +110,16 @@ function getShouldShowError(strategy: FeedbackStrategy): MetaField => boolean {
   }
 }
 
-type Props<T> = {
+type Props<T, ExtraSubmitData> = {
   // This is *only* used to intialize the form. Further changes will be ignored
   +initialValue: T,
   +feedbackStrategy: FeedbackStrategy,
-  +onSubmit: T => void,
+  +onSubmit: (T, ExtraSubmitData) => void,
   +onChange: T => void,
   +serverErrors: null | {[path: string]: Array<string>},
   +children: (
     link: FieldLink<T>,
-    onSubmit: () => void,
+    onSubmit: (ExtraSubmitData) => void,
     additionalInfo: AdditionalRenderInfo<T>
   ) => React.Node,
 };
@@ -129,13 +129,19 @@ type State<T> = {
   submitted: boolean,
   oldServerErrors: null | {[path: string]: Array<string>},
 };
-export default class Form<T> extends React.Component<Props<T>, State<T>> {
+export default class Form<T, ExtraSubmitData> extends React.Component<
+  Props<T, ExtraSubmitData>,
+  State<T>
+> {
   static defaultProps = {
     onChange: () => {},
     onSubmit: () => {},
   };
 
-  static getDerivedStateFromProps(props: Props<T>, state: State<T>) {
+  static getDerivedStateFromProps(
+    props: Props<T, ExtraSubmitData>,
+    state: State<T>
+  ) {
     if (props.serverErrors !== state.oldServerErrors) {
       const newFormState = applyServerErrorsToFormState(
         props.serverErrors,
@@ -149,7 +155,7 @@ export default class Form<T> extends React.Component<Props<T>, State<T>> {
     return null;
   }
 
-  constructor(props: Props<T>) {
+  constructor(props: Props<T, ExtraSubmitData>) {
     super(props);
 
     const freshTree = treeFromValue(props.initialValue, {
@@ -168,9 +174,11 @@ export default class Form<T> extends React.Component<Props<T>, State<T>> {
     };
   }
 
-  onSubmit = () => {
+  onSubmit: (extraData: ExtraSubmitData) => void = (
+    extraData: ExtraSubmitData
+  ) => {
     this.setState({submitted: true});
-    this.props.onSubmit(this.state.formState[0]);
+    this.props.onSubmit(this.state.formState[0], extraData);
   };
 
   updateFormState: (newValue: FormState<T>) => void = (
