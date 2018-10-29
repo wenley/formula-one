@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.3.1
+
+- Unbreak a test.
+
 ### v0.3.0
 
 - Add a way to pass additional information to `onSubmit` as a second argument.
