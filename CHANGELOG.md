@@ -2,6 +2,7 @@
 
 ### master
 
+- Add `onChange` prop to `<Form>`. Make `onChange` and `onSubmit` optional, since they probably won't co-occur.
 - Add additional information to render functions for `<Form>` and `Field`s as a third argument.
 
 ### v0.2.1

@@ -485,4 +485,25 @@ describe("Form", () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenLastCalledWith(1);
   });
+
+  it("Calls onChange when the value is changed", () => {
+    const onChange = jest.fn();
+    const renderFn = jest.fn(() => null);
+    TestRenderer.create(
+      <Form
+        initialValue={1}
+        feedbackStrategy="OnFirstTouch"
+        onChange={onChange}
+        serverErrors={{"/": ["Server error", "Another server error"]}}
+      >
+        {renderFn}
+      </Form>
+    );
+
+    const link = renderFn.mock.calls[0][0];
+    const nextFormState = mockFormState(2);
+    link.onChange(nextFormState);
+
+    expect(onChange).toHaveBeenCalledWith(2);
+  });
 });

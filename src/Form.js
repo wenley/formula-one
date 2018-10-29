@@ -115,6 +115,7 @@ type Props<T> = {
   +initialValue: T,
   +feedbackStrategy: FeedbackStrategy,
   +onSubmit: T => void,
+  +onChange: T => void,
   +serverErrors: null | {[path: string]: Array<string>},
   +children: (
     link: FieldLink<T>,
@@ -129,6 +130,11 @@ type State<T> = {
   oldServerErrors: null | {[path: string]: Array<string>},
 };
 export default class Form<T> extends React.Component<Props<T>, State<T>> {
+  static defaultProps = {
+    onChange: () => {},
+    onSubmit: () => {},
+  };
+
   static getDerivedStateFromProps(props: Props<T>, state: State<T>) {
     if (props.serverErrors !== state.oldServerErrors) {
       const newFormState = applyServerErrorsToFormState(
@@ -171,6 +177,7 @@ export default class Form<T> extends React.Component<Props<T>, State<T>> {
     newState: FormState<T>
   ) => {
     this.setState({formState: newState, pristine: false});
+    this.props.onChange(newState[0]);
   };
 
   updateTree: OnBlur<T> = (newTree: ShapedTree<T, Extras>) => {
