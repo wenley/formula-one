@@ -63,6 +63,37 @@ describe("ArrayField", () => {
         expect(path).toEqual([]);
         expect(errors).toEqual([]);
       });
+
+      it("Passes additional information to its render function", () => {
+        const formState = mockFormState(["value"]);
+        // $FlowFixMe
+        formState[1].data.errors = {
+          server: ["A server error"],
+          client: ["A client error"],
+        };
+        const link = mockLink(formState);
+        const renderFn = jest.fn(() => null);
+
+        TestRenderer.create(<ArrayField link={link}>{renderFn}</ArrayField>);
+
+        expect(renderFn).toHaveBeenCalled();
+        expect(renderFn).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          expect.objectContaining({
+            touched: false,
+            changed: false,
+            shouldShowErrors: expect.anything(),
+            unfilteredErrors: expect.arrayContaining([
+              "A server error",
+              "A client error",
+            ]),
+            valid: false,
+            asyncValidationInFlight: false,
+            value: ["value"],
+          })
+        );
+      });
     });
   });
 
@@ -180,7 +211,8 @@ describe("ArrayField", () => {
           expect.anything(),
           expect.objectContaining({
             addField: expect.any(Function),
-          })
+          }),
+          expect.anything()
         );
       });
       it("validates after entry is added", () => {
@@ -224,7 +256,8 @@ describe("ArrayField", () => {
           expect.anything(),
           expect.objectContaining({
             removeField: expect.any(Function),
-          })
+          }),
+          expect.anything()
         );
       });
       it("validates after entry is removed", () => {
@@ -263,7 +296,8 @@ describe("ArrayField", () => {
           expect.anything(),
           expect.objectContaining({
             moveField: expect.any(Function),
-          })
+          }),
+          expect.anything()
         );
       });
       it("validates after the entry is moved", () => {

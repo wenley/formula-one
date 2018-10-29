@@ -2,7 +2,13 @@
 
 import * as React from "react";
 
-import type {FieldLink, Validation, Extras, ClientErrors} from "./types";
+import type {
+  FieldLink,
+  Validation,
+  Extras,
+  ClientErrors,
+  AdditionalRenderInfo,
+} from "./types";
 import {cleanErrors, cleanMeta} from "./types";
 import {
   type ShapedTree,
@@ -24,6 +30,8 @@ import {
   arrayChild,
   validate,
   getExtras,
+  flatRootErrors,
+  isValid,
 } from "./formState";
 
 type ToFieldLink = <T>(T) => FieldLink<T>;
@@ -35,11 +43,12 @@ type Props<E> = {|
   +validation: Validation<Array<E>>,
   +children: (
     links: Links<E>,
-    {
+    arrayOperations: {
       addField: (index: number, value: E) => void,
       removeField: (index: number) => void,
       moveField: (oldIndex: number, newIndex: number) => void,
-    }
+    },
+    additionalInfo: AdditionalRenderInfo<Array<E>>
   ) => React.Node,
 |};
 
@@ -187,6 +196,7 @@ class ArrayField<E> extends React.Component<Props<E>> {
 
   render() {
     const {formState} = this.props.link;
+    const {shouldShowError} = this.props.formContext;
 
     const links = makeLinks(
       formState,
@@ -194,11 +204,23 @@ class ArrayField<E> extends React.Component<Props<E>> {
       this.onChildBlur,
       this.onChildValidation
     );
-    return this.props.children(links, {
-      addField: this.addChildField,
-      removeField: this.removeChildField,
-      moveField: this.moveChildField,
-    });
+    return this.props.children(
+      links,
+      {
+        addField: this.addChildField,
+        removeField: this.removeChildField,
+        moveField: this.moveChildField,
+      },
+      {
+        touched: getExtras(formState).meta.touched,
+        changed: getExtras(formState).meta.changed,
+        shouldShowErrors: shouldShowError(getExtras(formState).meta),
+        unfilteredErrors: flatRootErrors(formState),
+        asyncValidationInFlight: false, // no validations on Form
+        valid: isValid(formState),
+        value: formState[0],
+      }
+    );
   }
 }
 

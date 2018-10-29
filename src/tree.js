@@ -139,3 +139,29 @@ export function mapTree<A, B>(f: A => B, tree: Tree<A>): Tree<B> {
     };
   }
 }
+
+// Fold a tree preorder
+export function foldMapTree<T, Folded>(
+  mapper: T => Folded,
+  mempty: Folded,
+  mappend: (Folded, Folded) => Folded,
+  tree: Tree<T>
+): Folded {
+  if (tree.type === "leaf") {
+    return mapper(tree.data);
+  } else if (tree.type === "array") {
+    const foldedChildren = tree.children.reduce(
+      (memo, childTree) =>
+        mappend(memo, foldMapTree(mapper, mempty, mappend, childTree)),
+      mempty
+    );
+    return mappend(mapper(tree.data), foldedChildren);
+  } else {
+    const foldedChildren = Object.keys(tree.children).reduce(
+      (memo, key) =>
+        mappend(memo, foldMapTree(mapper, mempty, mappend, tree.children[key])),
+      mempty
+    );
+    return mappend(mapper(tree.data), foldedChildren);
+  }
+}

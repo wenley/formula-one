@@ -425,6 +425,39 @@ describe("Form", () => {
         })
       );
     });
+
+    it("Passes additional information to its render function", () => {
+      const renderFn = jest.fn(() => null);
+
+      TestRenderer.create(
+        <Form
+          initialValue={1}
+          feedbackStrategy="OnFirstTouch"
+          onSubmit={jest.fn()}
+          serverErrors={{"/": ["Server error", "Another server error"]}}
+        >
+          {renderFn}
+        </Form>
+      );
+
+      expect(renderFn).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({
+          touched: false,
+          changed: false,
+          shouldShowErrors: false,
+          unfilteredErrors: expect.arrayContaining([
+            "Server error",
+            "Another server error",
+          ]),
+          // Currently, only care about client errors
+          valid: true,
+          asyncValidationInFlight: false,
+          value: 1,
+        })
+      );
+    });
   });
 
   it("Calls onSubmit with the value when submitted", () => {

@@ -10,6 +10,8 @@ import {
   shapedObjectChild,
   shapedArrayChild,
   shapedZipWith,
+  foldMapShapedTree,
+  getRootData,
 } from "./shapedTree";
 import type {Extras, ClientErrors, Validation, ServerErrors} from "./types";
 import {replaceAt} from "./utils/array";
@@ -20,6 +22,19 @@ export type FormState<T> = [T, ShapedTree<T, Extras>];
 
 export function getExtras<T>(formState: FormState<T>): Extras {
   return forgetShape(formState[1]).data;
+}
+
+export function flatRootErrors<T>(formState: FormState<T>): Array<string> {
+  const errors = getRootData(formState[1]).errors;
+
+  let flatErrors = [];
+  if (errors.client !== "pending") {
+    flatErrors = flatErrors.concat(errors.client);
+  }
+  if (errors.server !== "unchecked") {
+    flatErrors = flatErrors.concat(errors.server);
+  }
+  return flatErrors;
 }
 
 export function objectChild<T: {}, V>(
@@ -233,4 +248,18 @@ export function replaceServerErrors<T>(
     formState[0],
     shapedZipWith(replaceServerErrorsExtra, serverErrors, formState[1]),
   ];
+}
+
+// Is whole tree client valid?
+// TODO(zach): This will have to change with asynchronous validations. We will
+// need a "pending" value as well as an "unchecked" value.
+// Currently, things in the tree which are not reflected in the React tree are
+// marked "pending", which means they can be valid :grimace:.
+export function isValid<T>(formState: FormState<T>): boolean {
+  return foldMapShapedTree(
+    ({errors: {client}}) => client === "pending" || client.length === 0,
+    true,
+    (l, r) => l && r,
+    formState[1]
+  );
 }

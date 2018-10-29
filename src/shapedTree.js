@@ -1,6 +1,13 @@
 // @flow strict
 
-import {type Tree, type Path, leaf, strictZipWith, mapTree} from "./tree";
+import {
+  type Tree,
+  type Path,
+  leaf,
+  strictZipWith,
+  mapTree,
+  foldMapTree,
+} from "./tree";
 import invariant from "./utils/invariant";
 import {replaceAt} from "./utils/array";
 
@@ -298,4 +305,18 @@ export function mapShapedTree<T, A, B>(
   tree: ShapedTree<T, A>
 ): ShapedTree<T, B> {
   return mapTree(f, tree);
+}
+
+// Fold a tree inorder
+export function foldMapShapedTree<T, Node, Folded>(
+  mapper: Node => Folded,
+  mempty: Folded,
+  mappend: (Folded, Folded) => Folded,
+  tree: ShapedTree<T, Node>
+): Folded {
+  return foldMapTree(mapper, mempty, mappend, tree);
+}
+
+export function getRootData<T, Node>(tree: ShapedTree<T, Node>): Node {
+  return tree.data;
 }

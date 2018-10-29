@@ -63,6 +63,36 @@ describe("ObjectField", () => {
         expect(path).toEqual([]);
         expect(errors).toEqual([]);
       });
+
+      it("Passes additional information to its render function", () => {
+        const formState = mockFormState({inner: "value"});
+        // $FlowFixMe
+        formState[1].data.errors = {
+          server: ["A server error"],
+          client: ["A client error"],
+        };
+        const link = mockLink(formState);
+        const renderFn = jest.fn(() => null);
+
+        TestRenderer.create(<ObjectField link={link}>{renderFn}</ObjectField>);
+
+        expect(renderFn).toHaveBeenCalled();
+        expect(renderFn).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            touched: false,
+            changed: false,
+            shouldShowErrors: expect.anything(),
+            unfilteredErrors: expect.arrayContaining([
+              "A server error",
+              "A client error",
+            ]),
+            valid: false,
+            asyncValidationInFlight: false,
+            value: {inner: "value"},
+          })
+        );
+      });
     });
   });
 

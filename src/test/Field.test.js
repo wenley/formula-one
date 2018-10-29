@@ -3,6 +3,7 @@
 import * as React from "react";
 import TestRenderer from "react-test-renderer";
 
+import Field from "../Field";
 import {mockFormState, mockLink} from "./tools";
 import TestField, {TestInput} from "./TestField";
 import {mapRoot} from "../shapedTree";
@@ -52,6 +53,7 @@ describe("Field", () => {
       expect(errors).toEqual([]);
     });
   });
+
   it("calls the link onChange with new values and correct meta", () => {
     const formState = mockFormState("Hello world.");
     const link = mockLink(formState);
@@ -73,6 +75,7 @@ describe("Field", () => {
       },
     });
   });
+
   it("calls the link onBlur with correct meta", () => {
     const formState = mockFormState("");
     const link = mockLink(formState);
@@ -93,6 +96,7 @@ describe("Field", () => {
       },
     });
   });
+
   it("flattens errors for the inner component", () => {
     let formState = mockFormState("");
     formState[1] = mapRoot(
@@ -117,5 +121,38 @@ describe("Field", () => {
       "Server errors",
       "go here",
     ]);
+  });
+
+  it("Passes additional information to its render function", () => {
+    const formState = mockFormState(10);
+    // $FlowFixMe
+    formState[1].data.errors = {
+      server: ["A server error"],
+      client: ["A client error"],
+    };
+    const link = mockLink(formState);
+    const renderFn = jest.fn(() => null);
+
+    TestRenderer.create(<Field link={link}>{renderFn}</Field>);
+
+    expect(renderFn).toHaveBeenCalled();
+    expect(renderFn).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({
+        touched: false,
+        changed: false,
+        shouldShowErrors: expect.anything(),
+        unfilteredErrors: expect.arrayContaining([
+          "A server error",
+          "A client error",
+        ]),
+        valid: false,
+        asyncValidationInFlight: false,
+        value: 10,
+      })
+    );
   });
 });

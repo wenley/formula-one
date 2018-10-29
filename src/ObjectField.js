@@ -2,7 +2,13 @@
 
 import * as React from "react";
 
-import type {FieldLink, Validation, Extras, ClientErrors} from "./types";
+import type {
+  FieldLink,
+  Validation,
+  Extras,
+  ClientErrors,
+  AdditionalRenderInfo,
+} from "./types";
 import {type FormContextPayload} from "./Form";
 import {FormContext} from "./Form";
 import {
@@ -13,6 +19,8 @@ import {
   objectChild,
   validate,
   getExtras,
+  flatRootErrors,
+  isValid,
 } from "./formState";
 import {
   type ShapedTree,
@@ -28,7 +36,10 @@ type Props<T: {}> = {|
   +link: FieldLink<T>,
   +formContext: FormContextPayload,
   +validation: Validation<T>,
-  +children: (links: Links<T>) => React.Node,
+  +children: (
+    links: Links<T>,
+    additionalInfo: AdditionalRenderInfo<T>
+  ) => React.Node,
 |};
 
 function makeLinks<T: {}, V>(
@@ -124,13 +135,24 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
   };
 
   render() {
+    const {formState} = this.props.link;
+    const {shouldShowError} = this.props.formContext;
+
     const links = makeLinks(
       this.props.link.formState,
       this.onChildChange,
       this.onChildBlur,
       this.onChildValidation
     );
-    return this.props.children(links);
+    return this.props.children(links, {
+      touched: getExtras(formState).meta.touched,
+      changed: getExtras(formState).meta.changed,
+      shouldShowErrors: shouldShowError(getExtras(formState).meta),
+      unfilteredErrors: flatRootErrors(formState),
+      asyncValidationInFlight: false, // no validations on Form
+      valid: isValid(formState),
+      value: formState[0],
+    });
   }
 }
 

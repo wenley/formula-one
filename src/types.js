@@ -39,6 +39,16 @@ export type Extras = {
   meta: MetaField,
 };
 
+export type AdditionalRenderInfo<T> = {|
+  +touched: boolean,
+  +changed: boolean,
+  +shouldShowErrors: boolean,
+  +unfilteredErrors: $ReadOnlyArray<string>,
+  +valid: boolean,
+  +asyncValidationInFlight: boolean,
+  +value: T,
+|};
+
 export type OnChange<T> = (FormState<T>) => void;
 export type OnBlur<T> = (ShapedTree<T, Extras>) => void;
 // This seems like it should be ClientError => void, but the new subtree needs to travel up

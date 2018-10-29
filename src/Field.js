@@ -1,10 +1,16 @@
 // @flow strict
 
 import * as React from "react";
-import type {FieldLink, Validation, Err} from "./types";
+import type {FieldLink, Validation, Err, AdditionalRenderInfo} from "./types";
 import {mapRoot} from "./shapedTree";
 import {FormContext, type FormContextPayload} from "./Form";
-import {setExtrasTouched, getExtras, setChanged, validate} from "./formState";
+import {
+  setExtrasTouched,
+  getExtras,
+  setChanged,
+  validate,
+  isValid,
+} from "./formState";
 
 type Props<T> = {|
   +link: FieldLink<T>,
@@ -14,7 +20,8 @@ type Props<T> = {|
     value: T,
     errors: $ReadOnlyArray<string>,
     onChange: (T) => void,
-    onBlur: () => void
+    onBlur: () => void,
+    additionalInfo: AdditionalRenderInfo<T>
   ) => React.Node,
 |};
 
@@ -68,12 +75,24 @@ class Field<T> extends React.Component<Props<T>> {
   };
 
   render() {
-    const [value] = this.props.link.formState;
-    const {meta, errors} = getExtras(this.props.link.formState);
+    const {formState} = this.props.link;
+    const [value] = formState;
+    const {meta, errors} = getExtras(formState);
+    const {shouldShowError} = this.props.formContext;
+
     const flatErrors = this.props.formContext.shouldShowError(meta)
       ? getErrors(errors)
       : [];
-    return this.props.children(value, flatErrors, this.onChange, this.onBlur);
+
+    return this.props.children(value, flatErrors, this.onChange, this.onBlur, {
+      touched: meta.touched,
+      changed: meta.changed,
+      shouldShowErrors: shouldShowError(meta),
+      unfilteredErrors: getErrors(errors),
+      asyncValidationInFlight: false, // no validations on Form
+      valid: isValid(formState),
+      value,
+    });
   }
 }
 

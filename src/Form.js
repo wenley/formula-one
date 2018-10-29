@@ -9,9 +9,10 @@ import type {
   Extras,
   FieldLink,
   ClientErrors,
+  AdditionalRenderInfo,
 } from "./types";
 import {cleanMeta, cleanErrors} from "./types";
-import {type FormState} from "./formState";
+import {type FormState, isValid, getExtras, flatRootErrors} from "./formState";
 import {
   type ShapedTree,
   type ShapedPath,
@@ -96,7 +97,7 @@ export type FeedbackStrategy =
   | "OnFirstSuccessOrFirstBlur"
   | "OnSubmit";
 
-function getShouldShowError(strategy: FeedbackStrategy) {
+function getShouldShowError(strategy: FeedbackStrategy): MetaField => boolean {
   switch (strategy) {
     case "Always":
       return () => true;
@@ -115,7 +116,11 @@ type Props<T> = {
   +feedbackStrategy: FeedbackStrategy,
   +onSubmit: T => void,
   +serverErrors: null | {[path: string]: Array<string>},
-  +children: (link: FieldLink<T>, onSubmit: () => void) => React.Node,
+  +children: (
+    link: FieldLink<T>,
+    onSubmit: () => void,
+    additionalInfo: AdditionalRenderInfo<T>
+  ) => React.Node,
 };
 type State<T> = {
   formState: FormState<T>,
@@ -209,7 +214,18 @@ export default class Form<T> extends React.Component<Props<T>, State<T>> {
             onBlur: this.updateTree,
             onValidation: this.updateTreeForValidation,
           },
-          this.onSubmit
+          this.onSubmit,
+          {
+            touched: getExtras(formState).meta.touched,
+            changed: getExtras(formState).meta.changed,
+            shouldShowErrors: getShouldShowError(this.props.feedbackStrategy)(
+              getExtras(formState).meta
+            ),
+            unfilteredErrors: flatRootErrors(formState),
+            asyncValidationInFlight: false, // no validations on Form
+            valid: isValid(formState),
+            value: formState[0],
+          }
         )}
       </FormContext.Provider>
     );
