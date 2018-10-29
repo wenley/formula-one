@@ -518,13 +518,17 @@ describe("Form", () => {
         onSubmit={onSubmit}
         serverErrors={{"/": ["Server error", "Another server error"]}}
       >
-        {(_, onSubmit) => {
-          // $ExpectError
-          onSubmit();
-          // $ExpectError
-          onSubmit("hello");
-          onSubmit("extra");
-        }}
+        {(_, onSubmit) => (
+          <button
+            onClick={() => {
+              // $ExpectError
+              onSubmit();
+              // $ExpectError
+              onSubmit("hello");
+              onSubmit("extra");
+            }}
+          />
+        )}
       </Form>
     );
   });
