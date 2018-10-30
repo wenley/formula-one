@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "babel -d dist/ src/",
-    "prepublishOnly": "npm run-script build",
+    "prepublishOnly": "yarn run flow && yarn run jest && yarn run build",
     "test": "jest"
   },
   "peerDependencies": {

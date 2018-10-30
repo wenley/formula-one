@@ -4,6 +4,7 @@ import * as React from "react";
 
 import type {
   MetaField,
+  MetaForm,
   OnBlur,
   OnValidation,
   Extras,
@@ -24,7 +25,7 @@ import {
 import {pathFromPathString} from "./tree";
 
 export type FormContextPayload = {
-  shouldShowError: (meta: MetaField) => boolean,
+  shouldShowError: (metaField: MetaField) => boolean,
   // These values are taken into account in shouldShowError, but are also
   // available in their raw form, for convenience.
   pristine: boolean,
@@ -89,23 +90,34 @@ function applyServerErrorsToFormState<T>(
   return [value, tree];
 }
 
+// FEATURE(zach): Change these to be mix-and-matchable (i.e. OnSubmit & OnChange, OnSuccess | OnTouch)
 export type FeedbackStrategy =
   | "Always"
-  | "OnFirstTouch"
+  | "OnFirstTouch" // A touch is a blur or a change
   | "OnFirstChange"
   | "OnFirstSuccess"
-  | "OnFirstSuccessOrFirstBlur"
+  | "OnFirstSuccessOrFirstTouch"
   | "OnSubmit";
 
-function getShouldShowError(strategy: FeedbackStrategy): MetaField => boolean {
+function getShouldShowError(
+  strategy: FeedbackStrategy
+): (MetaForm, MetaField) => boolean {
   switch (strategy) {
     case "Always":
       return () => true;
     case "OnFirstTouch":
-      return (meta: MetaField) => meta.touched;
+      return (_metaForm, meta: MetaField) => meta.touched;
     case "OnFirstChange":
-      return (meta: MetaField) => meta.changed;
+      return (_metaForm, meta: MetaField) => meta.changed;
+    case "OnFirstSuccess":
+      return (_metaForm, meta: MetaField) => meta.succeeded;
+    case "OnFirstSuccessOrFirstTouch":
+      return (_metaForm, meta: MetaField) => meta.succeeded || meta.touched;
+    case "OnSubmit":
+      return (metaForm: MetaForm) => metaForm.submitted;
     default:
+      // eslint-disable-next-line no-unused-expressions
+      (strategy: empty);
       throw new Error("Unimplemented feedback strategy: " + strategy);
   }
 }
@@ -213,13 +225,19 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
 
   render() {
     const {formState} = this.state;
+    const metaForm = {
+      pristine: this.state.pristine,
+      submitted: this.state.submitted,
+    };
 
     return (
       <FormContext.Provider
         value={{
-          shouldShowError: getShouldShowError(this.props.feedbackStrategy),
-          pristine: this.state.pristine,
-          submitted: this.state.submitted,
+          shouldShowError: getShouldShowError(this.props.feedbackStrategy).bind(
+            null,
+            metaForm
+          ),
+          ...metaForm,
         }}
       >
         {this.props.children(
@@ -234,6 +252,7 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
             touched: getExtras(formState).meta.touched,
             changed: getExtras(formState).meta.changed,
             shouldShowErrors: getShouldShowError(this.props.feedbackStrategy)(
+              metaForm,
               getExtras(formState).meta
             ),
             unfilteredErrors: flatRootErrors(formState),

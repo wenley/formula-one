@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.4.0
+
+- Implement all of the feedback strategies.
+
 ### v0.3.1
 
 - Unbreak a test.
