@@ -186,27 +186,33 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
     };
   }
 
-  onSubmit: (extraData: ExtraSubmitData) => void = (
+  // Public API: submit from the outside
+  submit(extraData: ExtraSubmitData) {
+    this._handleSubmit(extraData);
+  }
+
+  // private
+  _handleSubmit: (extraData: ExtraSubmitData) => void = (
     extraData: ExtraSubmitData
   ) => {
     this.setState({submitted: true});
     this.props.onSubmit(this.state.formState[0], extraData);
   };
 
-  updateFormState: (newValue: FormState<T>) => void = (
+  _handleChange: (newValue: FormState<T>) => void = (
     newState: FormState<T>
   ) => {
     this.setState({formState: newState, pristine: false});
     this.props.onChange(newState[0]);
   };
 
-  updateTree: OnBlur<T> = (newTree: ShapedTree<T, Extras>) => {
+  _handleBlur: OnBlur<T> = (newTree: ShapedTree<T, Extras>) => {
     this.setState({
       formState: [this.state.formState[0], newTree],
     });
   };
 
-  updateTreeForValidation: OnValidation<T> = (
+  _handleValidation: OnValidation<T> = (
     path: ShapedPath<T>,
     errors: ClientErrors
   ) => {
@@ -243,11 +249,11 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
         {this.props.children(
           {
             formState,
-            onChange: this.updateFormState,
-            onBlur: this.updateTree,
-            onValidation: this.updateTreeForValidation,
+            onChange: this._handleChange,
+            onBlur: this._handleBlur,
+            onValidation: this._handleValidation,
           },
-          this.onSubmit,
+          this._handleSubmit,
           {
             touched: getExtras(formState).meta.touched,
             changed: getExtras(formState).meta.changed,

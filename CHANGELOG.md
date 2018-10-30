@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.5.0
+
+- Expose a `submit(extraData)` method on `<Form>` to submit forms from a ref.
+
 ### v0.4.0
 
 - Implement all of the feedback strategies.
