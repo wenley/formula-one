@@ -2,7 +2,7 @@
 
 **formula-one** is a library which makes it easier to write type-safe forms with validations and complex inputs.
 
-### A simple example
+## A simple example
 
 ```jsx
 type Person = {
@@ -63,7 +63,7 @@ const emptyPerson: Person = {
 </Form>;
 ```
 
-### Philosophy
+## Philosophy
 
 **formula-one** helps you write forms in React by managing the state of your form and ensuring your inputs are the right type. It does this by introducing a new abstraction, called a _Field_. A _Field_ wraps some value and provides a way to render and edit that value. A simple _Field_ might wrap a `string`, which displays and edits its value through an `<input type="text">`. A more complex value, such as a date and time might be displayed as an ISO 8601 string and be edited through a calendar input.
 
@@ -145,7 +145,7 @@ For example, imagine you have a form for a person, who has a name, but also some
 type Person = {
   name: string,
   pets: Array<{
-    name: string
+    name: string,
   }>,
 };
 
@@ -168,7 +168,7 @@ const emptyPerson = {
             )}
           </Field>
           <ArrayField link={links.pets}>
-            {links, {addField} => (
+            {(links, {addField}) => (
               <ul>
                 {links.map((link, i) => (
                   <ObjectField link={link}>
@@ -177,7 +177,12 @@ const emptyPerson = {
                         {(value, errors, onChange, onBlur) => (
                           <li>
                             Pet #{i + 1}
-                            <input type="text" value={value} onChange={onChange} onBlur={onBlur} />
+                            <input
+                              type="text"
+                              value={value}
+                              onChange={onChange}
+                              onBlur={onBlur}
+                            />
                           </li>
                         )}
                       </Field>
@@ -185,7 +190,9 @@ const emptyPerson = {
                   </ObjectField>
                 ))}
                 {links.length === 0 ? "No pets :(" : null}
-                <button onClick={addField(links.length, {name: ""})}>Add pet</button>
+                <button onClick={addField(links.length, {name: ""})}>
+                  Add pet
+                </button>
               </ul>
             )}
           </ArrayField>
@@ -196,7 +203,7 @@ const emptyPerson = {
       )}
     </ObjectField>
   )}
-</Form>
+</Form>;
 ```
 
 `<ArrayField>` exposes both an array of links to the array elements, but also an object containing mutators for the array:
@@ -205,15 +212,15 @@ const emptyPerson = {
 - `removeField(index: number)`: Remove a field at a position in array
 - `moveField(fromIndex: number, toIndex: number)`: Move a field in an array (preserves metadata for the field)
 
-### Complex inputs
+## Complex inputs
 
 Even inputs which are complex can be wrapped in a `<Field>` wrapper, but validations are tracked at the field level, so you won't be able to use **formula-one** to track changes and validations below the field level.
 
 <!-- ### Form state vs actual model -->
 
-### Common use cases
+## Common use cases
 
-#### Form in a modal
+### Form in a modal
 
 Oftentimes, when you need to wrap a component which has a button you will use for submission, you can simply wrap that component with your `<Form>` element. The `<Form>` does not render any elements, so it will not affect your DOM hierarchy.
 
@@ -229,7 +236,7 @@ Example:
 </Form>
 ```
 
-#### External validation
+### External validation
 
 Oftentimes, you will want to show errors from an external source (such as the server) in your form alongside any client-side validation errors. These can be passed into your `<Form>` component using the `serverErrors` (TODO(zach): change to `externalErrors`?) prop.
 
@@ -262,9 +269,9 @@ could be used in this form:
 </Form>
 ```
 
-### Advanced usage
+## Advanced usage
 
-#### Additional information in render prop
+### Additional information in render prop
 
 Additional information is available in an object which is the last argument to the `<Form>`, `<ObjectField>`, `<ArrayField>`, and `<Field>` components' render props. This object contains the following information:
 
@@ -306,7 +313,7 @@ An example of how these data could be used:
 </Form>
 ```
 
-#### Multiple submission buttons
+### Multiple submission buttons
 
 Sometimes, you need to have multiple submission buttons and need to know which button was clicked in your `onSubmit` prop callback. This can be achieved by passing additional information as an argument to the `handleSubmit` argument to your `<Form>`'s render prop. This argument will be passed to your `onSubmit` prop callback as a second argument. If your `onSubmit` prop callback is typed to make this extra data mandatory, they inner `handleSubmit` callback will require that data.
 
@@ -334,7 +341,7 @@ function handleSubmit(value: User, saveOrSubmit: "save" | "submit") {
 </Form>;
 ```
 
-#### Submitting forms externally
+### Submitting forms externally
 
 It is easy to sumbit a **formula-one** form using the `handleSubmit` argument provided to `<Form>`'s render prop, but sometimes you need to submit a `<Form>` from outside. This is possible using the `submit()` method available on `<Form>` along with a React ref to that `<Form>` element. This `submit()` method can also receive additional user-specified information, as stated above.
 
