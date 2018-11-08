@@ -1,7 +1,7 @@
 // @flow strict
 // Just re-exports and some masssaging
 
-import FeedbackStrategies, {and, or} from "./FeedbackStrategies";
+import FeedbackStrategies, {and, or, not} from "./FeedbackStrategies";
 
 export {default as Form} from "./Form";
 export {default as ObjectField} from "./ObjectField";
@@ -13,6 +13,7 @@ const mergedStrategies = {
   ...FeedbackStrategies,
   and,
   or,
+  not,
 };
 export {mergedStrategies};
 

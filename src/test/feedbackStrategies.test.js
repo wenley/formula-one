@@ -4,6 +4,7 @@ import FeedbackStrategies, {
   type FeedbackStrategy,
   and,
   or,
+  not,
 } from "../feedbackStrategies";
 
 describe("feedbackStrategies", () => {
@@ -98,6 +99,13 @@ describe("feedbackStrategies", () => {
         expect(callStrategy(or(t, f))).toBe(true);
         expect(callStrategy(or(f, t))).toBe(true);
         expect(callStrategy(or(f, f))).toBe(false);
+      });
+    });
+
+    describe("not()", () => {
+      it("behaves like boolean negation", () => {
+        expect(callStrategy(not(t))).toBe(false);
+        expect(callStrategy(not(f))).toBe(true);
       });
     });
   });

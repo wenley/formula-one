@@ -40,3 +40,9 @@ export function or(a: FeedbackStrategy, b: FeedbackStrategy): FeedbackStrategy {
     return a(metaForm, metaField) || b(metaForm, metaField);
   };
 }
+
+export function not(s: FeedbackStrategy): FeedbackStrategy {
+  return (metaForm: MetaForm, metaField: MetaField) => {
+    return !s(metaForm, metaField);
+  };
+}
