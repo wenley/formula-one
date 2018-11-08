@@ -1,6 +1,6 @@
 # Changelog
 
-### master
+### v0.6.0
 
 - Rework the `feedbackStrategy` prop. Several primitive strategies and algebraic combinators are exported under `FeedbackStrategies`, a new top-level export. See the documentation for more info.
 
