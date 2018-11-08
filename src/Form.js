@@ -23,6 +23,7 @@ import {
   mapShapedTree,
 } from "./shapedTree";
 import {pathFromPathString} from "./tree";
+import {type FeedbackStrategy} from "./feedbackStrategies";
 
 export type FormContextPayload = {
   shouldShowError: (metaField: MetaField) => boolean,
@@ -88,38 +89,6 @@ function applyServerErrorsToFormState<T>(
   }
 
   return [value, tree];
-}
-
-// FEATURE(zach): Change these to be mix-and-matchable (i.e. OnSubmit & OnChange, OnSuccess | OnTouch)
-export type FeedbackStrategy =
-  | "Always"
-  | "OnFirstTouch" // A touch is a blur or a change
-  | "OnFirstChange"
-  | "OnFirstSuccess"
-  | "OnFirstSuccessOrFirstTouch"
-  | "OnSubmit";
-
-function getShouldShowError(
-  strategy: FeedbackStrategy
-): (MetaForm, MetaField) => boolean {
-  switch (strategy) {
-    case "Always":
-      return () => true;
-    case "OnFirstTouch":
-      return (_metaForm, meta: MetaField) => meta.touched;
-    case "OnFirstChange":
-      return (_metaForm, meta: MetaField) => meta.changed;
-    case "OnFirstSuccess":
-      return (_metaForm, meta: MetaField) => meta.succeeded;
-    case "OnFirstSuccessOrFirstTouch":
-      return (_metaForm, meta: MetaField) => meta.succeeded || meta.touched;
-    case "OnSubmit":
-      return (metaForm: MetaForm) => metaForm.submitted;
-    default:
-      // eslint-disable-next-line no-unused-expressions
-      (strategy: empty);
-      throw new Error("Unimplemented feedback strategy: " + strategy);
-  }
 }
 
 type Props<T, ExtraSubmitData> = {
@@ -239,10 +208,7 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
     return (
       <FormContext.Provider
         value={{
-          shouldShowError: getShouldShowError(this.props.feedbackStrategy).bind(
-            null,
-            metaForm
-          ),
+          shouldShowError: this.props.feedbackStrategy.bind(null, metaForm),
           ...metaForm,
         }}
       >
@@ -257,7 +223,7 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
           {
             touched: getExtras(formState).meta.touched,
             changed: getExtras(formState).meta.changed,
-            shouldShowErrors: getShouldShowError(this.props.feedbackStrategy)(
+            shouldShowErrors: this.props.feedbackStrategy(
               metaForm,
               getExtras(formState).meta
             ),

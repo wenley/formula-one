@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import TestRenderer from "react-test-renderer";
+import FeedbackStrategies from "../feedbackStrategies";
 import Form, {FormContext} from "../Form";
 import ObjectField from "../ObjectField";
 import ArrayField from "../ArrayField";
@@ -47,7 +48,7 @@ describe("Form", () => {
       TestRenderer.create(
         <Form
           initialValue={1}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{"/": ["Server error", "Another server error"]}}
         >
@@ -86,7 +87,7 @@ describe("Form", () => {
             simple: 3,
             complex: [{inner: "hello"}, {inner: "there"}],
           }}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{
             "/": ["Root error"],
@@ -126,7 +127,7 @@ describe("Form", () => {
           initialValue={{
             array: [],
           }}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{
             "/array": ["Cannot be empty"],
@@ -148,7 +149,7 @@ describe("Form", () => {
           initialValue={{
             array: [],
           }}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{
             "/array": [],
@@ -185,7 +186,7 @@ describe("Form", () => {
             noErrors: "bar",
             array: ["baz", "quux"],
           }}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={null}
         >
@@ -252,7 +253,7 @@ describe("Form", () => {
             naughty: "foo",
             nice: "bar",
           }}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={null}
         >
@@ -296,7 +297,7 @@ describe("Form", () => {
       const renderer = TestRenderer.create(
         <Form
           initialValue={1}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={null}
         >
@@ -318,7 +319,7 @@ describe("Form", () => {
       const renderer = TestRenderer.create(
         <Form
           initialValue={1}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={null}
         >
@@ -345,7 +346,7 @@ describe("Form", () => {
       TestRenderer.create(
         <Form
           initialValue={1}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{"/": ["Server error", "Another server error"]}}
         >
@@ -378,7 +379,7 @@ describe("Form", () => {
       TestRenderer.create(
         <Form
           initialValue={1}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={jest.fn()}
           serverErrors={{"/": ["Server error", "Another server error"]}}
         >
@@ -411,7 +412,7 @@ describe("Form", () => {
       TestRenderer.create(
         <Form
           initialValue={1}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{"/": ["Server error", "Another server error"]}}
         >
@@ -432,7 +433,7 @@ describe("Form", () => {
       TestRenderer.create(
         <Form
           initialValue={1}
-          feedbackStrategy="OnFirstTouch"
+          feedbackStrategy={FeedbackStrategies.Touched}
           onSubmit={jest.fn()}
           serverErrors={{"/": ["Server error", "Another server error"]}}
         >
@@ -469,7 +470,7 @@ describe("Form", () => {
     TestRenderer.create(
       <Form
         initialValue={1}
-        feedbackStrategy="OnFirstTouch"
+        feedbackStrategy={FeedbackStrategies.Always}
         onSubmit={onSubmit}
         serverErrors={{"/": ["Server error", "Another server error"]}}
       >
@@ -492,7 +493,7 @@ describe("Form", () => {
     TestRenderer.create(
       <Form
         initialValue={1}
-        feedbackStrategy="OnFirstTouch"
+        feedbackStrategy={FeedbackStrategies.Always}
         onSubmit={onSubmit}
         serverErrors={{"/": ["Server error", "Another server error"]}}
       >
@@ -514,7 +515,7 @@ describe("Form", () => {
     TestRenderer.create(
       <Form
         initialValue={1}
-        feedbackStrategy="OnFirstTouch"
+        feedbackStrategy={FeedbackStrategies.Always}
         onSubmit={onSubmit}
         serverErrors={{"/": ["Server error", "Another server error"]}}
       >
@@ -539,7 +540,7 @@ describe("Form", () => {
     TestRenderer.create(
       <Form
         initialValue={1}
-        feedbackStrategy="OnFirstTouch"
+        feedbackStrategy={FeedbackStrategies.Always}
         onChange={onChange}
         serverErrors={{"/": ["Server error", "Another server error"]}}
       >

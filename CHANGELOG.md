@@ -1,5 +1,9 @@
 # Changelog
 
+### master
+
+- Rework the `feedbackStrategy` prop. Several primitive strategies and algebraic combinators are exported under `FeedbackStrategies`, a new top-level export. See the documentation for more info.
+
 ### v0.5.0
 
 - Expose a `submit(extraData)` method on `<Form>` to submit forms from a ref.

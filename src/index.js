@@ -1,5 +1,7 @@
 // @flow strict
-// Just re-exports
+// Just re-exports and some masssaging
+
+import FeedbackStrategies, {and, or} from "./FeedbackStrategies";
 
 export {default as Form} from "./Form";
 export {default as ObjectField} from "./ObjectField";
@@ -7,7 +9,14 @@ export {default as ArrayField} from "./ArrayField";
 export {default as ErrorsHelper} from "./ErrorsHelper";
 export {default as Field} from "./Field";
 
-export type {FeedbackStrategy} from "./Form";
+const mergedStrategies = {
+  ...FeedbackStrategies,
+  and,
+  or,
+};
+export {mergedStrategies};
+
+export type {FeedbackStrategy} from "./FeedbackStrategies";
 export type {Validation, FieldLink} from "./types";
 
 export * as TestUtils from "./TestUtils";

@@ -1,4 +1,9 @@
-- Rework initial validations
+- Configurable feedback strategies
+- client vs server errors and validity
+- example for changing fields from other fields
+- onValidation at <Form> level
+- Rename Field to BaseField
+- clearing server errors
 - Async validations
 - <Field> typing mystery - https://github.com/facebook/flow/issues/6903
 - rename onFoo to handleFoo in some places?
