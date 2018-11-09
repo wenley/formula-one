@@ -1,4 +1,3 @@
-- Configurable feedback strategies
 - client vs server errors and validity
 - example for changing fields from other fields
 - onValidation at <Form> level

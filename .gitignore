@@ -2,6 +2,7 @@
 
 /dist
 !/dist/index.js.flow
+!/dist/.npmignore
 
 .DS_Store
 npm-debug.log*
