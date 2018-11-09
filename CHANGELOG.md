@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.6.4
+
+- Update Flow types to work with Flow 0.86.0.
+
 ### v0.6.3
 
 - Fix another feedbackStrategy import issue. Also, yarn ignores .npmignore files when packing for publish, so that's broken too: https://github.com/yarnpkg/yarn/issues/685
