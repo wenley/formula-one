@@ -3,12 +3,40 @@
 import * as React from "react";
 import TestRenderer from "react-test-renderer";
 import ObjectField from "../ObjectField";
+import {type FieldLink} from "../types";
 
 import {expectLink, mockLink, mockFormState} from "./tools";
 
 describe("ObjectField", () => {
   describe("ObjectField is a field", () => {
     describe("validates on mount", () => {
+      it("ensures that the link inner type matches the type of the validation", () => {
+        type TestObject = {|
+          string: string,
+          number: number,
+        |};
+        const formStateInner: TestObject = {
+          string: "hello",
+          number: 42,
+        };
+        const formState = mockFormState(formStateInner);
+        const link: FieldLink<TestObject> = mockLink(formState);
+
+        // $ExpectError
+        <ObjectField link={link} validation={(_e: empty) => []}>
+          {() => null}
+        </ObjectField>;
+
+        // $ExpectError
+        <ObjectField link={link} validation={(_e: {|string: string|}) => []}>
+          {() => null}
+        </ObjectField>;
+
+        <ObjectField link={link} validation={(_e: TestObject) => []}>
+          {() => null}
+        </ObjectField>;
+      });
+
       it("Sets errors.client and meta.succeeded when there are no errors", () => {
         const validation = jest.fn(() => []);
         const formState = mockFormState({inner: "value"});
@@ -110,12 +138,48 @@ describe("ObjectField", () => {
 
       expect(renderFn).toHaveBeenCalled();
       const objectLinks = renderFn.mock.calls[0][0];
-      expect(Object.keys(objectLinks)).toEqual(Object.keys(objectLinks));
+      expect(Object.keys(objectLinks)).toEqual(Object.keys(formStateInner));
       Object.keys(formStateInner).forEach(k => {
         expect(objectLinks).toHaveProperty(k);
         const link = objectLinks[k];
         expectLink(link);
       });
+    });
+
+    it("has the correct type for the links object", () => {
+      type TestObject = {|
+        string: string,
+        number: number,
+      |};
+      const formStateInner: TestObject = {
+        string: "hello",
+        number: 42,
+      };
+      const formState = mockFormState(formStateInner);
+      const link: FieldLink<TestObject> = mockLink(formState);
+
+      <ObjectField link={link}>
+        {/* $ExpectError */}
+        {(links: empty) => {
+          console.log(links);
+          return null;
+        }}
+      </ObjectField>;
+
+      <ObjectField link={link}>
+        {/* $ExpectError */}
+        {(links: {|string: FieldLink<string>|}) => {
+          console.log(links);
+          return null;
+        }}
+      </ObjectField>;
+
+      <ObjectField link={link}>
+        {(links: {|string: FieldLink<string>, number: FieldLink<number>|}) => {
+          console.log(links);
+          return null;
+        }}
+      </ObjectField>;
     });
 
     it("calls onChange when a child changes", () => {

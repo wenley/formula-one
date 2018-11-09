@@ -1,5 +1,10 @@
 # Changelog
 
+### v0.7.0
+
+- Fix the types of the links produced by all `Field`s. This breakage occurred because `React.ElementConfig` is broken for components with a type parameter.
+- Add type tests to ensure the types stay working.
+
 ### v0.6.4
 
 - Update Flow types to work with Flow 0.86.0.

@@ -225,15 +225,13 @@ class ArrayField<E> extends React.Component<Props<E>> {
 }
 
 // Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
-export default function(
-  props: $Diff<
-    React.ElementConfig<typeof ArrayField>,
-    {+formContext: FormContextPayload}
-  >
-) {
+function wrap<E>(props: $Diff<Props<E>, {+formContext: FormContextPayload}>) {
   return (
     <FormContext.Consumer>
       {formContext => <ArrayField {...props} formContext={formContext} />}
     </FormContext.Consumer>
   );
 }
+wrap.defaultProps = ArrayField.defaultProps;
+
+export default wrap;

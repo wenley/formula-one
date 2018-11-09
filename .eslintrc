@@ -3,7 +3,12 @@
   "rules": {
     "no-unused-vars": [
       "error",
-      {"vars": "all", "ignoreRestSiblings": true, "varsIgnorePattern": "_.*"}
+      {
+        "vars": "all",
+        "ignoreRestSiblings": true,
+        "varsIgnorePattern": "^_",
+        "argsIgnorePattern": "^_"
+      }
     ]
   }
 }

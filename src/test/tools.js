@@ -5,7 +5,7 @@ import {type FieldLink} from "../types";
 import {treeFromValue} from "../shapedTree";
 import {cleanErrors, cleanMeta} from "../types";
 
-export function mockFormState(value: mixed): FormState<mixed> {
+export function mockFormState<T>(value: T): FormState<T> {
   return [
     value,
     treeFromValue(value, {
@@ -27,9 +27,9 @@ export function expectLink(link: any) {
   expect(Object.keys(link).length).toBe(4);
 }
 
-export function mockLink(formState: FormState<any>): FieldLink<any> {
+export function mockLink<T>(formState: FormState<T>): FieldLink<T> {
   return {
-    formState: formState,
+    formState,
     onChange: jest.fn(),
     onBlur: jest.fn(),
     onValidation: jest.fn(),

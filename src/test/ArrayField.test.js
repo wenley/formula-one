@@ -3,12 +3,27 @@
 import * as React from "react";
 import TestRenderer from "react-test-renderer";
 import ArrayField from "../ArrayField";
+import {type FieldLink} from "../types";
 
 import {expectLink, mockLink, mockFormState} from "./tools";
 
 describe("ArrayField", () => {
   describe("ArrayField is a field", () => {
     describe("validates on mount", () => {
+      it("ensures that the link inner type matches the type of the validation", () => {
+        const formState = mockFormState(["one", "two", "three"]);
+        const link = mockLink(formState);
+
+        // $ExpectError
+        <ArrayField link={link} validation={(_e: empty) => []}>
+          {() => null}
+        </ArrayField>;
+
+        <ArrayField link={link} validation={(_e: Array<string>) => []}>
+          {() => null}
+        </ArrayField>;
+      });
+
       it("Sets errors.client and meta.succeeded when there are no errors", () => {
         const validation = jest.fn(() => []);
         const formState = mockFormState([]);
@@ -110,6 +125,26 @@ describe("ArrayField", () => {
       const arrayLinks = renderFn.mock.calls[0][0];
       expect(arrayLinks.length).toBe(3);
       arrayLinks.forEach(expectLink);
+    });
+
+    it("has the correct type for the links object", () => {
+      const formState = mockFormState(["one", "two", "three"]);
+      const link = mockLink(formState);
+
+      <ArrayField link={link}>
+        {/* $ExpectError */}
+        {(links: empty) => {
+          console.log(links);
+          return null;
+        }}
+      </ArrayField>;
+
+      <ArrayField link={link}>
+        {(links: Array<FieldLink<string>>) => {
+          console.log(links);
+          return null;
+        }}
+      </ArrayField>;
     });
 
     it("calls onChange when a child changes", () => {

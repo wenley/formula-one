@@ -157,11 +157,8 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
 }
 
 // Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
-export default function(
-  props: $Diff<
-    React.ElementConfig<typeof ObjectField>,
-    {+formContext: FormContextPayload}
-  >
+function wrap<T: {}>(
+  props: $Diff<Props<T>, {+formContext: FormContextPayload}>
 ) {
   return (
     <FormContext.Consumer>
@@ -169,3 +166,6 @@ export default function(
     </FormContext.Consumer>
   );
 }
+wrap.defaultProps = ObjectField.defaultProps;
+
+export default wrap;

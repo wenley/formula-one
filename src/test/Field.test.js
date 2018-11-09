@@ -10,6 +10,20 @@ import {mapRoot} from "../shapedTree";
 
 describe("Field", () => {
   describe("validates on mount", () => {
+    it("ensures that the link inner type matches the type of the validation", () => {
+      const formState = mockFormState("Hello world.");
+      const link = mockLink(formState);
+
+      // $ExpectError
+      <Field link={link} validation={(_e: empty) => []}>
+        {() => null}
+      </Field>;
+
+      <Field link={link} validation={(_e: string) => []}>
+        {() => null}
+      </Field>;
+    });
+
     it("Sets errors.client and meta.succeeded when there are no errors", () => {
       const formState = mockFormState("Hello world.");
       const link = mockLink(formState);
@@ -121,6 +135,32 @@ describe("Field", () => {
       "Server errors",
       "go here",
     ]);
+  });
+
+  it("Passes value of the right type to its render function", () => {
+    const formState = mockFormState("Hello there");
+    const link = mockLink(formState);
+
+    <Field link={link}>
+      {/* $ExpectError */}
+      {(_value: empty) => null}
+    </Field>;
+
+    <Field link={link}>{(_value: string) => null}</Field>;
+  });
+
+  it("Passes onChange of the right type to its render function", () => {
+    const formState = mockFormState("Hello there");
+    const link = mockLink(formState);
+
+    <Field link={link}>
+      {/* $ExpectError */}
+      {(_value, _errors, _onChange: empty) => null}
+    </Field>;
+
+    <Field link={link}>
+      {(_value, _errors, _onChange: string => void) => null}
+    </Field>;
   });
 
   it("Passes additional information to its render function", () => {

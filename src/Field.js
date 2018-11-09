@@ -96,15 +96,13 @@ class Field<T> extends React.Component<Props<T>> {
   }
 }
 
-export default function(
-  props: $Diff<
-    React.ElementConfig<typeof Field>,
-    {+formContext: FormContextPayload}
-  >
-) {
+function wrap<T>(props: $Diff<Props<T>, {+formContext: FormContextPayload}>) {
   return (
     <FormContext.Consumer>
       {formContext => <Field {...props} formContext={formContext} />}
     </FormContext.Consumer>
   );
 }
+wrap.defaultProps = Field.defaultProps;
+
+export default wrap;
