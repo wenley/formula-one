@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.6.2
+
+- Remove tests from the npm package. This will prevent flow from trying to check the test files and also makes the package smaller.
+
 ### v0.6.1
 
 - Export FeedbackStrategies under the right name.
