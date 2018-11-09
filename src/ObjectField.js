@@ -37,7 +37,7 @@ type Props<T: {}> = {|
   +formContext: FormContextPayload,
   +validation: Validation<T>,
   +children: (
-    links: Links<T>,
+    links: $ObjMap<T, <X>(X) => FieldLink<X>>,
     additionalInfo: AdditionalRenderInfo<T>
   ) => React.Node,
 |};

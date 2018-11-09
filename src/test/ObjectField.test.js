@@ -1,8 +1,10 @@
 // @flow
+/* eslint-disable no-unused-expressions */
 
 import * as React from "react";
 import TestRenderer from "react-test-renderer";
 import ObjectField from "../ObjectField";
+import {type FieldLink} from "../types";
 
 import {expectLink, mockLink, mockFormState} from "./tools";
 
@@ -110,12 +112,38 @@ describe("ObjectField", () => {
 
       expect(renderFn).toHaveBeenCalled();
       const objectLinks = renderFn.mock.calls[0][0];
-      expect(Object.keys(objectLinks)).toEqual(Object.keys(objectLinks));
+      expect(Object.keys(objectLinks)).toEqual(Object.keys(formStateInner));
       Object.keys(formStateInner).forEach(k => {
         expect(objectLinks).toHaveProperty(k);
         const link = objectLinks[k];
         expectLink(link);
       });
+      // $ExpectError
+      (objectLinks: {||});
+      (objectLinks: {|
+        string: FieldLink<number>,
+        number: FieldLink<number>,
+      |});
+    });
+
+    it("has the correct type for the links object", () => {
+      type TestObject = {|
+        string: string,
+        number: number,
+      |};
+      const formStateInner = {
+        string: "hello",
+        number: 42,
+      };
+      const formState = mockFormState(formStateInner);
+      const link: FieldLink<TestObject> = mockLink(formState);
+
+      <ObjectField link={link}>
+        {(links: FieldLink<number>) => {
+          console.log(links);
+          return null;
+        }}
+      </ObjectField>;
     });
 
     it("calls onChange when a child changes", () => {
