@@ -15,7 +15,7 @@ const mergedStrategies = {
   or,
   not,
 };
-export {mergedStrategies};
+export {mergedStrategies as FeedbackStrategies};
 
 export type {FeedbackStrategy} from "./FeedbackStrategies";
 export type {Validation, FieldLink} from "./types";
