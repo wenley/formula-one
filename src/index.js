@@ -1,7 +1,7 @@
 // @flow strict
 // Just re-exports and some masssaging
 
-import FeedbackStrategies, {and, or, not} from "./FeedbackStrategies";
+import FeedbackStrategies, {and, or, not} from "./feedbackStrategies";
 
 export {default as Form} from "./Form";
 export {default as ObjectField} from "./ObjectField";
