@@ -20,4 +20,4 @@ export {mergedStrategies as FeedbackStrategies};
 export type {FeedbackStrategy} from "./FeedbackStrategies";
 export type {Validation, FieldLink} from "./types";
 
-export * as TestUtils from "./TestUtils";
+export * as TestUtils from "./testutils";
