@@ -4,6 +4,7 @@ import * as React from "react";
 import TestRenderer from "react-test-renderer";
 
 import Field from "../Field";
+import {type FieldLink} from "../types";
 import {mockFormState, mockLink} from "./tools";
 import TestField, {TestInput} from "./TestField";
 import {mapRoot} from "../shapedTree";
@@ -151,11 +152,16 @@ describe("Field", () => {
 
   it("Passes onChange of the right type to its render function", () => {
     const formState = mockFormState("Hello there");
-    const link = mockLink(formState);
+    const link: FieldLink<string> = mockLink(formState);
 
     <Field link={link}>
       {/* $ExpectError */}
       {(_value, _errors, _onChange: empty) => null}
+    </Field>;
+
+    // $ExpectError
+    <Field link={link}>
+      {(_value, _errors, _onChange: number => void) => null}
     </Field>;
 
     <Field link={link}>
