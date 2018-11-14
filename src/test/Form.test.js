@@ -9,7 +9,7 @@ import ArrayField from "../ArrayField";
 import Field from "../Field";
 
 import {expectLink, mockFormState} from "./tools";
-import TestField from "./TestField";
+import TestField, {TestInput} from "./TestField";
 import {forgetShape} from "../shapedTree";
 
 class NaughtyRenderingInput extends React.Component<{|
@@ -553,5 +553,39 @@ describe("Form", () => {
     link.onChange(nextFormState);
 
     expect(onChange).toHaveBeenCalledWith(2);
+  });
+
+  it.only("Calls onValidation when a part of the value is validated", () => {
+    const onValidation = jest.fn();
+    const renderer = TestRenderer.create(
+      <Form
+        initialValue={""}
+        feedbackStrategy={FeedbackStrategies.Always}
+        onValidation={onValidation}
+        serverErrors={{"/": ["Server error", "Another server error"]}}
+      >
+        {link => (
+          <TestField
+            link={link}
+            validation={s => {
+              if (s.length > 0) {
+                return [];
+              } else {
+                return ["No blank strings"];
+              }
+            }}
+          />
+        )}
+      </Form>
+    );
+
+    expect(onValidation).toHaveBeenCalledTimes(1);
+    expect(onValidation).toHaveBeenLastCalledWith(false);
+
+    const inner = renderer.root.findByType(TestInput);
+    inner.instance.change("zach");
+
+    expect(onValidation).toHaveBeenCalledTimes(2);
+    expect(onValidation).toHaveBeenLastCalledWith(true);
   });
 });

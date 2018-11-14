@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.8.0
+
+- Add `onValidation` prop to `Form`. This is a callback which will be called any time validations occur within the form. It receives a boolean, which is whether the form is valid according to the formula-one validations.
+
 ### v0.7.0
 
 - Fix the types of the links produced by all `Field`s. This breakage occurred because `React.ElementConfig` is broken for components with a type parameter.

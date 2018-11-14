@@ -31,13 +31,13 @@ export type FormContextPayload = {
   pristine: boolean,
   submitted: boolean,
 };
-export const FormContext: React.Context<
-  FormContextPayload
-> = React.createContext({
-  shouldShowError: () => true,
-  pristine: false,
-  submitted: true,
-});
+export const FormContext: React.Context<FormContextPayload> = React.createContext(
+  {
+    shouldShowError: () => true,
+    pristine: false,
+    submitted: true,
+  }
+);
 
 function applyServerErrorsToFormState<T>(
   serverErrors: null | {[path: string]: Array<string>},
@@ -90,19 +90,20 @@ function applyServerErrorsToFormState<T>(
   return [value, tree];
 }
 
-type Props<T, ExtraSubmitData> = {
+type Props<T, ExtraSubmitData> = {|
   // This is *only* used to intialize the form. Further changes will be ignored
   +initialValue: T,
   +feedbackStrategy: FeedbackStrategy,
   +onSubmit: (T, ExtraSubmitData) => void,
   +onChange: T => void,
+  +onValidation: boolean => void,
   +serverErrors: null | {[path: string]: Array<string>},
   +children: (
     link: FieldLink<T>,
     onSubmit: (ExtraSubmitData) => void,
     additionalInfo: AdditionalRenderInfo<T>
   ) => React.Node,
-};
+|};
 type State<T> = {
   formState: FormState<T>,
   pristine: boolean,
@@ -116,6 +117,7 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
   static defaultProps = {
     onChange: () => {},
     onSubmit: () => {},
+    onValidation: () => {},
   };
 
   static getDerivedStateFromProps(
@@ -173,6 +175,12 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
   ) => {
     this.setState({formState: newState, pristine: false});
     this.props.onChange(newState[0]);
+    // TODO(zach): This is a bit gross, but the general purpose here is
+    //   that onValidation outside the form (in the public API) doesn't
+    //   correspond directly to the internal onValidation. Internally
+    //   onValidation means (on initial validation). Externally, it means
+    //   on any validation.
+    this.props.onValidation(isValid(newState));
   };
 
   _handleBlur: OnBlur<T> = (newTree: ShapedTree<T, Extras>) => {
@@ -193,9 +201,14 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
         succeeded: newErrors.length === 0 ? true : meta.succeeded,
       },
     });
-    this.setState(({formState: [value, tree]}) => ({
-      formState: [value, updateAtPath(path, updater(errors), tree)],
-    }));
+    this.setState(
+      ({formState: [value, tree]}) => ({
+        formState: [value, updateAtPath(path, updater(errors), tree)],
+      }),
+      () => {
+        this.props.onValidation(isValid(this.state.formState));
+      }
+    );
   };
 
   render() {
