@@ -17,7 +17,7 @@ const mergedStrategies = {
 };
 export {mergedStrategies as FeedbackStrategies};
 
-export type {FeedbackStrategy} from "./FeedbackStrategies";
+export type {FeedbackStrategy} from "./feedbackStrategies";
 export type {Validation, FieldLink} from "./types";
 
 export * as TestUtils from "./testutils";

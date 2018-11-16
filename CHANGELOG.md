@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.8.2
+
+- Fix incorrect export caused by OS X case insensitivity
+
 ### v0.8.1
 
 - Fix bad path in /dist caused by OS X case insensitivity
