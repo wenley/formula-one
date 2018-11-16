@@ -1,5 +1,12 @@
 # Changelog
 
+### v0.9.0-alpha
+
+- Add `customChange` prop to `ObjectField` and `ArrayField`. This allows changes in one part of the object to affect other parts of the form. Currently, no metadata is preserved if a `customChange` function is used. This will be addressed in a future API. _Warning_: Rendering a component which calls `onChange` during mount will result in an infinite render loop.
+  <br>
+  <br>
+  **Warning**: returning non-null from `customChange` forces a remount of all children. This can cause unintended consequences such as loss of focus on inputs. This will be fixed in a future 0.9 release.
+
 ### v0.8.2
 
 - Fix incorrect export caused by OS X case insensitivity

@@ -11,12 +11,16 @@ import type {
   ClientErrors,
   AdditionalRenderInfo,
 } from "./types";
-import {cleanMeta, cleanErrors} from "./types";
-import {type FormState, isValid, getExtras, flatRootErrors} from "./formState";
+import {
+  type FormState,
+  isValid,
+  getExtras,
+  flatRootErrors,
+  freshFormState,
+} from "./formState";
 import {
   type ShapedTree,
   type ShapedPath,
-  treeFromValue,
   shapePath,
   updateAtPath,
   mapShapedTree,
@@ -141,14 +145,10 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
   constructor(props: Props<T, ExtraSubmitData>) {
     super(props);
 
-    const freshTree = treeFromValue(props.initialValue, {
-      errors: cleanErrors,
-      meta: cleanMeta,
-    });
-    const formState = applyServerErrorsToFormState(props.serverErrors, [
-      props.initialValue,
-      freshTree,
-    ]);
+    const formState = applyServerErrorsToFormState(
+      props.serverErrors,
+      freshFormState(props.initialValue)
+    );
     this.state = {
       formState,
       pristine: true,

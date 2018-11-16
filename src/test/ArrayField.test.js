@@ -4,6 +4,7 @@ import * as React from "react";
 import TestRenderer from "react-test-renderer";
 import ArrayField from "../ArrayField";
 import {type FieldLink} from "../types";
+import TestField, {TestInput} from "./TestField";
 
 import {expectLink, mockLink, mockFormState} from "./tools";
 
@@ -356,6 +357,201 @@ describe("ArrayField", () => {
         expect(validation).toHaveBeenCalledTimes(2);
         expect(validation).toHaveBeenLastCalledWith(["one", "three", "two"]);
       });
+    });
+  });
+
+  describe("customChange", () => {
+    it("allows the default change behavior to be overwritten with customChange", () => {
+      const formStateInner = ["one", "two", "three"];
+      const formState = mockFormState(formStateInner);
+      const link = mockLink(formState);
+      const renderFn = jest.fn(() => null);
+      const validation = jest.fn(() => ["This is an error"]);
+
+      const customChange = jest.fn((_oldValue, _newValue) => [
+        "uno",
+        "dos",
+        "tres",
+      ]);
+
+      TestRenderer.create(
+        <ArrayField
+          link={link}
+          validation={validation}
+          customChange={customChange}
+        >
+          {renderFn}
+        </ArrayField>
+      );
+
+      const arrayLinks = renderFn.mock.calls[0][0];
+      // call the child onChange
+      const newChildMeta = mockFormState("zwei");
+      arrayLinks[1].onChange(newChildMeta);
+
+      // customChange should be called with the correct args
+      expect(customChange).toHaveBeenCalledTimes(1);
+      expect(customChange).toHaveBeenCalledWith(
+        ["one", "two", "three"],
+        ["one", "zwei", "three"]
+      );
+
+      // onChange should be called with the result of customChange
+      expect(link.onChange).toHaveBeenCalledTimes(1);
+      expect(link.onChange).toHaveBeenCalledWith([
+        ["uno", "dos", "tres"],
+        expect.anything(),
+      ]);
+
+      // Validated the result of customChange
+      expect(validation).toHaveBeenCalledTimes(2);
+      expect(validation.mock.calls[1][0]).toEqual(["uno", "dos", "tres"]);
+    });
+
+    it("can return null to signal there was no custom change", () => {
+      const formStateInner = ["one", "two", "three"];
+      const formState = mockFormState(formStateInner);
+      const link = mockLink(formState);
+      const renderFn = jest.fn(() => null);
+      const validation = jest.fn(() => ["This is an error"]);
+
+      const customChange = jest.fn((_oldValue, _newValue) => null);
+
+      TestRenderer.create(
+        <ArrayField
+          link={link}
+          validation={validation}
+          customChange={customChange}
+        >
+          {renderFn}
+        </ArrayField>
+      );
+
+      const arrayLinks = renderFn.mock.calls[0][0];
+      // call the child onChange
+      const newChildMeta = mockFormState("zwei");
+      arrayLinks[1].onChange(newChildMeta);
+
+      expect(customChange).toHaveBeenCalledTimes(1);
+
+      // onChange should be called with the result of customChange
+      expect(link.onChange).toHaveBeenCalledTimes(1);
+      expect(link.onChange).toHaveBeenCalledWith([
+        ["one", "zwei", "three"],
+        expect.anything(),
+      ]);
+
+      // Validated the result of customChange
+      expect(validation).toHaveBeenCalledTimes(2);
+      expect(validation.mock.calls[1][0]).toEqual(["one", "zwei", "three"]);
+    });
+
+    it("doesn't break validations for child fields", () => {
+      const formStateInner = ["one", "two", "three"];
+      const formState = mockFormState(formStateInner);
+      const link = mockLink(formState);
+
+      const customChange = jest.fn((_oldValue, _newValue) => ["1", "2"]);
+
+      const childValidation = jest.fn(() => ["This is an error"]);
+
+      const renderer = TestRenderer.create(
+        <ArrayField link={link} customChange={customChange}>
+          {links => (
+            <React.Fragment>
+              {links.map((link, i) => (
+                <TestField key={i} link={link} validation={childValidation} />
+              ))}
+            </React.Fragment>
+          )}
+        </ArrayField>
+      );
+
+      // 6 validations:
+      // 1) Child initial validation x3
+      // 2) Parent initial validation
+      // 3) Child validation on remount x3
+      // (No parent onValidation call, because it will use onChange)
+
+      // 1) and 2)
+      expect(link.onValidation).toHaveBeenCalledTimes(4);
+      link.onValidation.mockClear();
+
+      const inner = renderer.root.findAllByType(TestInput)[0];
+      inner.instance.change("zach");
+
+      // 3)
+      expect(link.onValidation).toHaveBeenCalledTimes(3);
+      expect(link.onValidation).toHaveBeenCalledWith(
+        [{type: "array", index: 0}],
+        ["This is an error"]
+      );
+      expect(link.onValidation).toHaveBeenCalledWith(
+        [{type: "array", index: 1}],
+        ["This is an error"]
+      );
+      // NOTE(zach): This may be surprising since there are only two values in
+      //   the new value, but there is no guarantee that the next commit will
+      //   have occurred yet.
+      expect(link.onValidation).toHaveBeenCalledWith(
+        [{type: "array", index: 2}],
+        ["This is an error"]
+      );
+
+      // onChange should be called with the result of customChange
+      expect(link.onChange).toHaveBeenCalledTimes(1);
+      expect(link.onChange).toHaveBeenCalledWith([
+        ["1", "2"],
+        {
+          type: "array",
+          data: {
+            errors: {
+              client: [],
+              server: "unchecked",
+            },
+            meta: {
+              touched: true,
+              changed: true,
+              succeeded: true,
+              asyncValidationInFlight: false,
+            },
+          },
+          children: [
+            {
+              type: "leaf",
+              data: {
+                errors: {
+                  // Validations happen after the initial onchange
+                  client: "pending",
+                  server: "unchecked",
+                },
+                meta: {
+                  touched: true,
+                  changed: true,
+                  succeeded: false,
+                  asyncValidationInFlight: false,
+                },
+              },
+            },
+            {
+              type: "leaf",
+              data: {
+                errors: {
+                  // Validations happen after the initial onchange
+                  client: "pending",
+                  server: "unchecked",
+                },
+                meta: {
+                  touched: true,
+                  changed: true,
+                  succeeded: false,
+                  asyncValidationInFlight: false,
+                },
+              },
+            },
+          ],
+        },
+      ]);
     });
   });
 });

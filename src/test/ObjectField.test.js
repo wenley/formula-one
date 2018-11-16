@@ -6,6 +6,7 @@ import ObjectField from "../ObjectField";
 import {type FieldLink} from "../types";
 
 import {expectLink, mockLink, mockFormState} from "./tools";
+import TestField, {TestInput} from "./TestField";
 
 describe("ObjectField", () => {
   describe("ObjectField is a field", () => {
@@ -283,6 +284,225 @@ describe("ObjectField", () => {
         string: "newString",
         number: 42,
       });
+    });
+  });
+
+  describe("customChange", () => {
+    it("allows the default change behavior to be overwritten with customChange", () => {
+      const formStateInner = {
+        string: "hello",
+        number: 42,
+      };
+      const formState = mockFormState(formStateInner);
+      const link = mockLink(formState);
+      const renderFn = jest.fn(() => null);
+      const validation = jest.fn(() => ["This is an error"]);
+
+      const customChange = jest.fn((_oldValue, _newValue) => ({
+        string: "A whole new value",
+        number: 0,
+      }));
+
+      TestRenderer.create(
+        <ObjectField
+          link={link}
+          validation={validation}
+          customChange={customChange}
+        >
+          {renderFn}
+        </ObjectField>
+      );
+
+      const objectLinks = renderFn.mock.calls[0][0];
+      // call the child onChange
+      const newChildMeta = mockFormState("newString");
+      objectLinks.string.onChange(newChildMeta);
+
+      // customChange should be called with the correct args
+      expect(customChange).toHaveBeenCalledTimes(1);
+      expect(customChange).toHaveBeenCalledWith(
+        {
+          string: "hello",
+          number: 42,
+        },
+        {
+          string: "newString",
+          number: 42,
+        }
+      );
+
+      // onChange should be called with the result of customChange
+      expect(link.onChange).toHaveBeenCalledTimes(1);
+      expect(link.onChange).toHaveBeenCalledWith([
+        {
+          string: "A whole new value",
+          number: 0,
+        },
+        expect.anything(),
+      ]);
+
+      // Validated the result of customChange
+      expect(validation).toHaveBeenCalledTimes(2);
+      expect(validation.mock.calls[1][0]).toEqual({
+        string: "A whole new value",
+        number: 0,
+      });
+    });
+
+    it("can return null to signal there was no custom change", () => {
+      const formStateInner = {
+        string: "hello",
+        number: 42,
+      };
+      const formState = mockFormState(formStateInner);
+      const link = mockLink(formState);
+      const renderFn = jest.fn(() => null);
+      const validation = jest.fn(() => ["This is an error"]);
+
+      const customChange = jest.fn((_oldValue, _newValue) => null);
+
+      TestRenderer.create(
+        <ObjectField
+          link={link}
+          validation={validation}
+          customChange={customChange}
+        >
+          {renderFn}
+        </ObjectField>
+      );
+
+      const objectLinks = renderFn.mock.calls[0][0];
+      // call the child onChange
+      const newChildMeta = mockFormState("newString");
+      objectLinks.string.onChange(newChildMeta);
+
+      expect(customChange).toHaveBeenCalledTimes(1);
+
+      // onChange should be called with the result of customChange
+      expect(link.onChange).toHaveBeenCalledTimes(1);
+      expect(link.onChange).toHaveBeenCalledWith([
+        {
+          string: "newString",
+          number: 42,
+        },
+        expect.anything(),
+      ]);
+
+      // Validated the result of customChange
+      expect(validation).toHaveBeenCalledTimes(2);
+      expect(validation.mock.calls[1][0]).toEqual({
+        string: "newString",
+        number: 42,
+      });
+    });
+
+    it("doesn't break validations for child fields", () => {
+      const formStateInner = {
+        string: "hello",
+        string2: "goodbye",
+      };
+      const formState = mockFormState(formStateInner);
+      const link = mockLink(formState);
+
+      const customChange = jest.fn((_oldValue, _newValue) => ({
+        string: "a whole new value",
+        string2: "modified sibling value",
+      }));
+
+      const childValidation = jest.fn(() => ["This is an error"]);
+
+      const renderer = TestRenderer.create(
+        <ObjectField link={link} customChange={customChange}>
+          {links => (
+            <React.Fragment>
+              <TestField link={links.string} validation={childValidation} />
+              <TestField link={links.string2} validation={childValidation} />
+            </React.Fragment>
+          )}
+        </ObjectField>
+      );
+
+      // 5 validations:
+      // 1) Child initial validation x2
+      // 2) Parent initial validation
+      // 3) Child validation on remount x2
+      // (No parent onValidation call, because it will use onChange)
+
+      // 1) and 2)
+      expect(link.onValidation).toHaveBeenCalledTimes(3);
+      link.onValidation.mockClear();
+
+      const inner = renderer.root.findAllByType(TestInput)[0];
+      inner.instance.change("zach");
+
+      // 3)
+      expect(link.onValidation).toHaveBeenCalledTimes(2);
+      expect(link.onValidation).toHaveBeenCalledWith(
+        [{type: "object", key: "string"}],
+        ["This is an error"]
+      );
+      expect(link.onValidation).toHaveBeenCalledWith(
+        [{type: "object", key: "string2"}],
+        ["This is an error"]
+      );
+
+      // onChange should be called with the result of customChange
+      expect(link.onChange).toHaveBeenCalledTimes(1);
+      expect(link.onChange).toHaveBeenCalledWith([
+        {
+          string: "a whole new value",
+          string2: "modified sibling value",
+        },
+        {
+          type: "object",
+          data: {
+            errors: {
+              client: [],
+              server: "unchecked",
+            },
+            meta: {
+              touched: true,
+              changed: true,
+              succeeded: true,
+              asyncValidationInFlight: false,
+            },
+          },
+          children: {
+            string: {
+              type: "leaf",
+              data: {
+                errors: {
+                  // Validations happen after the initial onchange
+                  client: "pending",
+                  server: "unchecked",
+                },
+                meta: {
+                  touched: true,
+                  changed: true,
+                  succeeded: false,
+                  asyncValidationInFlight: false,
+                },
+              },
+            },
+            string2: {
+              type: "leaf",
+              data: {
+                errors: {
+                  // Validations happen after the initial onchange
+                  client: "pending",
+                  server: "unchecked",
+                },
+                meta: {
+                  touched: true,
+                  changed: true,
+                  succeeded: false,
+                  asyncValidationInFlight: false,
+                },
+              },
+            },
+          },
+        },
+      ]);
     });
   });
 });

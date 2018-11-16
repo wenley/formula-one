@@ -8,6 +8,7 @@ import type {
   Extras,
   ClientErrors,
   AdditionalRenderInfo,
+  CustomChange,
 } from "./types";
 import {cleanErrors, cleanMeta} from "./types";
 import {
@@ -32,6 +33,7 @@ import {
   getExtras,
   flatRootErrors,
   isValid,
+  changedFormState,
 } from "./formState";
 
 type ToFieldLink = <T>(T) => FieldLink<T>;
@@ -41,6 +43,7 @@ type Props<E> = {|
   +link: FieldLink<Array<E>>,
   +formContext: FormContextPayload,
   +validation: Validation<Array<E>>,
+  +customChange?: CustomChange<Array<E>>,
   +children: (
     links: Links<E>,
     arrayOperations: {
@@ -75,9 +78,17 @@ function makeLinks<E>(
   });
 }
 
-class ArrayField<E> extends React.Component<Props<E>> {
+type State = {|
+  nonce: number,
+|};
+
+class ArrayField<E> extends React.Component<Props<E>, State> {
   static defaultProps = {
     validation: () => [],
+  };
+
+  state = {
+    nonce: 0,
   };
 
   initialValidate() {
@@ -97,21 +108,49 @@ class ArrayField<E> extends React.Component<Props<E>> {
     this.initialValidate();
   }
 
-  onChildChange: (number, FormState<E>) => void = (
+  forceChildRemount() {
+    this.setState(({nonce}) => ({nonce: nonce + 1}));
+  }
+
+  _handleChildChange: (number, FormState<E>) => void = (
     index: number,
     newChild: FormState<E>
   ) => {
-    this.props.link.onChange(
-      validate(
-        this.props.validation,
-        setChanged(
-          replaceArrayChild(index, newChild, this.props.link.formState)
-        )
-      )
+    const newFormState = replaceArrayChild(
+      index,
+      newChild,
+      this.props.link.formState
     );
+
+    const oldValue = this.props.link.formState[0];
+    const newValue = newFormState[0];
+
+    const customValue =
+      this.props.customChange && this.props.customChange(oldValue, newValue);
+
+    let nextFormState: FormState<Array<E>>;
+    if (customValue) {
+      // Create a fresh form state for the new value.
+      // TODO(zach): It's kind of gross that this is happening outside of Form.
+      nextFormState = changedFormState(customValue);
+    } else {
+      nextFormState = newFormState;
+    }
+
+    this.props.link.onChange(
+      setChanged(validate(this.props.validation, nextFormState))
+    );
+
+    // Need to remount children so they will run validations
+    if (customValue) {
+      this.forceChildRemount();
+    }
   };
 
-  onChildBlur: (number, ShapedTree<E, Extras>) => void = (index, childTree) => {
+  _handleChildBlur: (number, ShapedTree<E, Extras>) => void = (
+    index,
+    childTree
+  ) => {
     const [_, tree] = this.props.link.formState;
     this.props.link.onBlur(
       mapRoot(
@@ -121,7 +160,7 @@ class ArrayField<E> extends React.Component<Props<E>> {
     );
   };
 
-  onChildValidation: (number, ShapedPath<E>, ClientErrors) => void = (
+  _handleChildValidation: (number, ShapedPath<E>, ClientErrors) => void = (
     index,
     childPath,
     errors
@@ -136,7 +175,7 @@ class ArrayField<E> extends React.Component<Props<E>> {
     this.props.link.onValidation(extendedPath, errors);
   };
 
-  addChildField: (number, E) => void = (index: number, childValue: E) => {
+  _addChildField: (number, E) => void = (index: number, childValue: E) => {
     const [oldValue, oldTree] = this.props.link.formState;
     const cleanNode = {
       errors: cleanErrors,
@@ -161,7 +200,7 @@ class ArrayField<E> extends React.Component<Props<E>> {
     );
   };
 
-  removeChildField = (index: number) => {
+  _removeChildField = (index: number) => {
     const [oldValue, oldTree] = this.props.link.formState;
 
     const newValue = removeAt(index, oldValue);
@@ -178,7 +217,7 @@ class ArrayField<E> extends React.Component<Props<E>> {
     );
   };
 
-  moveChildField = (from: number, to: number) => {
+  _moveChildField = (from: number, to: number) => {
     const [oldValue, oldTree] = this.props.link.formState;
 
     const newValue = moveFromTo(from, to, oldValue);
@@ -200,26 +239,30 @@ class ArrayField<E> extends React.Component<Props<E>> {
 
     const links = makeLinks(
       formState,
-      this.onChildChange,
-      this.onChildBlur,
-      this.onChildValidation
+      this._handleChildChange,
+      this._handleChildBlur,
+      this._handleChildValidation
     );
-    return this.props.children(
-      links,
-      {
-        addField: this.addChildField,
-        removeField: this.removeChildField,
-        moveField: this.moveChildField,
-      },
-      {
-        touched: getExtras(formState).meta.touched,
-        changed: getExtras(formState).meta.changed,
-        shouldShowErrors: shouldShowError(getExtras(formState).meta),
-        unfilteredErrors: flatRootErrors(formState),
-        asyncValidationInFlight: false, // no validations on Form
-        valid: isValid(formState),
-        value: formState[0],
-      }
+    return (
+      <React.Fragment key={this.state.nonce}>
+        {this.props.children(
+          links,
+          {
+            addField: this._addChildField,
+            removeField: this._removeChildField,
+            moveField: this._moveChildField,
+          },
+          {
+            touched: getExtras(formState).meta.touched,
+            changed: getExtras(formState).meta.changed,
+            shouldShowErrors: shouldShowError(getExtras(formState).meta),
+            unfilteredErrors: flatRootErrors(formState),
+            asyncValidationInFlight: false, // no validations on Form
+            valid: isValid(formState),
+            value: formState[0],
+          }
+        )}
+      </React.Fragment>
     );
   }
 }

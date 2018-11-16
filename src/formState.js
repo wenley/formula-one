@@ -12,7 +12,9 @@ import {
   shapedZipWith,
   foldMapShapedTree,
   getRootData,
+  treeFromValue,
 } from "./shapedTree";
+import {cleanMeta, cleanErrors} from "./types";
 import type {Extras, ClientErrors, Validation, ServerErrors} from "./types";
 import {replaceAt} from "./utils/array";
 import invariant from "./utils/invariant";
@@ -22,6 +24,31 @@ export type FormState<T> = [T, ShapedTree<T, Extras>];
 
 export function getExtras<T>(formState: FormState<T>): Extras {
   return forgetShape(formState[1]).data;
+}
+
+export function freshFormState<T>(value: T): FormState<T> {
+  return [
+    value,
+    treeFromValue(value, {
+      errors: cleanErrors,
+      meta: cleanMeta,
+    }),
+  ];
+}
+
+export function changedFormState<T>(value: T): FormState<T> {
+  return [
+    value,
+    treeFromValue(value, {
+      errors: cleanErrors,
+      meta: {
+        touched: true,
+        changed: true,
+        succeeded: false,
+        asyncValidationInFlight: false,
+      },
+    }),
+  ];
 }
 
 export function flatRootErrors<T>(formState: FormState<T>): Array<string> {

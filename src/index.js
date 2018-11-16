@@ -2,6 +2,7 @@
 // Just re-exports and some masssaging
 
 import FeedbackStrategies, {and, or, not} from "./feedbackStrategies";
+import {LinkTap} from "./testutils";
 
 export {default as Form} from "./Form";
 export {default as ObjectField} from "./ObjectField";
@@ -20,4 +21,4 @@ export {mergedStrategies as FeedbackStrategies};
 export type {FeedbackStrategy} from "./feedbackStrategies";
 export type {Validation, FieldLink} from "./types";
 
-export * as TestUtils from "./testutils";
+export {LinkTap};

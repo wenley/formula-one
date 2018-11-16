@@ -8,6 +8,7 @@ import type {
   Extras,
   ClientErrors,
   AdditionalRenderInfo,
+  CustomChange,
 } from "./types";
 import {type FormContextPayload} from "./Form";
 import {FormContext} from "./Form";
@@ -21,6 +22,7 @@ import {
   getExtras,
   flatRootErrors,
   isValid,
+  changedFormState,
 } from "./formState";
 import {
   type ShapedTree,
@@ -36,6 +38,7 @@ type Props<T: {}> = {|
   +link: FieldLink<T>,
   +formContext: FormContextPayload,
   +validation: Validation<T>,
+  +customChange?: CustomChange<T>,
   +children: (
     links: Links<T>,
     additionalInfo: AdditionalRenderInfo<T>
@@ -70,12 +73,20 @@ function makeLinks<T: {}, V>(
   }, {});
 }
 
-class ObjectField<T: {}> extends React.Component<Props<T>> {
+type State = {|
+  nonce: number,
+|};
+
+class ObjectField<T: {}> extends React.Component<Props<T>, State> {
   static defaultProps = {
     validation: () => [],
   };
 
-  initialValidate() {
+  state = {
+    nonce: 0,
+  };
+
+  _initialValidate() {
     const {
       link: {formState, onValidation},
       validation,
@@ -89,24 +100,49 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
   }
 
   componentDidMount() {
-    this.initialValidate();
+    this._initialValidate();
   }
 
-  onChildChange: <V>(string, FormState<V>) => void = <V>(
+  forceChildRemount() {
+    this.setState(({nonce}) => ({nonce: nonce + 1}));
+  }
+
+  _handleChildChange: <V>(string, FormState<V>) => void = <V>(
     key: string,
     newChild: FormState<V>
   ) => {
-    this.props.link.onChange(
-      setChanged(
-        validate(
-          this.props.validation,
-          replaceObjectChild(key, newChild, this.props.link.formState)
-        )
-      )
+    const newFormState = replaceObjectChild(
+      key,
+      newChild,
+      this.props.link.formState
     );
+
+    const oldValue = this.props.link.formState[0];
+    const newValue = newFormState[0];
+
+    const customValue =
+      this.props.customChange && this.props.customChange(oldValue, newValue);
+
+    let nextFormState: FormState<T>;
+    if (customValue) {
+      // Create a fresh form state for the new value.
+      // TODO(zach): It's kind of gross that this is happening outside of Form.
+      nextFormState = changedFormState(customValue);
+    } else {
+      nextFormState = newFormState;
+    }
+
+    this.props.link.onChange(
+      setChanged(validate(this.props.validation, nextFormState))
+    );
+
+    // Need to remount children so they will run validations
+    if (customValue) {
+      this.forceChildRemount();
+    }
   };
 
-  onChildBlur: <V>(string, ShapedTree<V, Extras>) => void = <V>(
+  _handleChildBlur: <V>(string, ShapedTree<V, Extras>) => void = <V>(
     key: string,
     childTree: ShapedTree<V, Extras>
   ) => {
@@ -119,7 +155,9 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
     );
   };
 
-  onChildValidation: <V>(string, ShapedPath<V>, ClientErrors) => void = <V>(
+  _handleChildValidation: <V>(string, ShapedPath<V>, ClientErrors) => void = <
+    V
+  >(
     key: string,
     childPath: ShapedPath<V>,
     errors: ClientErrors
@@ -140,19 +178,23 @@ class ObjectField<T: {}> extends React.Component<Props<T>> {
 
     const links = makeLinks(
       this.props.link.formState,
-      this.onChildChange,
-      this.onChildBlur,
-      this.onChildValidation
+      this._handleChildChange,
+      this._handleChildBlur,
+      this._handleChildValidation
     );
-    return this.props.children(links, {
-      touched: getExtras(formState).meta.touched,
-      changed: getExtras(formState).meta.changed,
-      shouldShowErrors: shouldShowError(getExtras(formState).meta),
-      unfilteredErrors: flatRootErrors(formState),
-      asyncValidationInFlight: false, // no validations on Form
-      valid: isValid(formState),
-      value: formState[0],
-    });
+    return (
+      <React.Fragment key={this.state.nonce}>
+        {this.props.children(links, {
+          touched: getExtras(formState).meta.touched,
+          changed: getExtras(formState).meta.changed,
+          shouldShowErrors: shouldShowError(getExtras(formState).meta),
+          unfilteredErrors: flatRootErrors(formState),
+          asyncValidationInFlight: false, // no validations on Form
+          valid: isValid(formState),
+          value: formState[0],
+        })}
+      </React.Fragment>
+    );
   }
 }
 

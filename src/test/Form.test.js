@@ -555,7 +555,7 @@ describe("Form", () => {
     expect(onChange).toHaveBeenCalledWith(2);
   });
 
-  it.only("Calls onValidation when a part of the value is validated", () => {
+  it("Calls onValidation when a part of the value is validated", () => {
     const onValidation = jest.fn();
     const renderer = TestRenderer.create(
       <Form
