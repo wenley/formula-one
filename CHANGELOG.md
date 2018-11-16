@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.8.1
+
+- Fix bad path in /dist caused by OS X case insensitivity
+
 ### v0.8.0
 
 - Add `onValidation` prop to `Form`. This is a callback which will be called any time validations occur within the form. It receives a boolean, which is whether the form is valid according to the formula-one validations.
