@@ -1,4 +1,7 @@
+// @flow
+
 import * as React from "react";
+import type {FieldLink, Validation} from "../types";
 import Field from "../Field";
 
 export class TestInput extends React.Component<{|
@@ -20,8 +23,8 @@ export class TestInput extends React.Component<{|
 }
 
 type Props = {|
-  link: FieldLink<T>,
-  validation: Validation<T>,
+  link: FieldLink<string>,
+  validation: Validation<string>,
 |};
 
 export default class TestField extends React.Component<Props> {
