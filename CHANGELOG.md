@@ -2,10 +2,26 @@
 
 ### v0.9.0-alpha
 
-- Add `customChange` prop to `ObjectField` and `ArrayField`. This allows changes in one part of the object to affect other parts of the form. Currently, no metadata is preserved if a `customChange` function is used. This will be addressed in a future API. _Warning_: Rendering a component which calls `onChange` during mount will result in an infinite render loop.
-  <br>
-  <br>
+- Add `customChange` prop to `ObjectField` and `ArrayField`. This allows changes in one part of the object to affect other parts of the form. Currently, no metadata is preserved (all fields are marked **changed** and **touched**) if a `customChange` function is used. This will be addressed in a future API.
+
+  **Warning**: Rendering a component which calls `onChange` during mount under a non-null returning `customChange` will result in an infinite render loop.
+
   **Warning**: returning non-null from `customChange` forces a remount of all children. This can cause unintended consequences such as loss of focus on inputs. This will be fixed in a future 0.9 release.
+
+- Add `addFields` and `filterFields` array manipulators. These are currently necessary due to the non-atomic nature of the current `addField` and `removeField` manipulators. They will be made atomic in a future version.
+
+  The API is:
+
+  ```jsx
+  // A type indicating a range to be inserted at an index
+  type Span<E> = [number, $ReadOnlyArray<E>];
+
+  // A way to atomicly add fields to an ArrayField<E>
+  addFields: (spans: $ReadOnlyArray<Span<E>) => void;
+
+  // A way to remove fields from an ArrayField<E>
+  filterFields: (predicate: (item: E, index: number) => boolean) => void
+  ```
 
 ### v0.8.2
 

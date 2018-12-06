@@ -20,7 +20,14 @@ import {
   dangerouslySetChildren,
   shapedArrayChildren,
 } from "./shapedTree";
-import {removeAt, moveFromTo, insertAt} from "./utils/array";
+import {
+  removeAt,
+  moveFromTo,
+  insertAt,
+  insertSpans,
+  zip,
+  unzip,
+} from "./utils/array";
 import {FormContext, type FormContextPayload} from "./Form";
 import {
   type FormState,
@@ -50,6 +57,8 @@ type Props<E> = {|
       addField: (index: number, value: E) => void,
       removeField: (index: number) => void,
       moveField: (oldIndex: number, newIndex: number) => void,
+      addFields: (spans: $ReadOnlyArray<[number, $ReadOnlyArray<E>]>) => void,
+      filterFields: (predicate: (E, number) => boolean) => void,
     },
     additionalInfo: AdditionalRenderInfo<Array<E>>
   ) => React.Node,
@@ -200,6 +209,54 @@ class ArrayField<E> extends React.Component<Props<E>, State> {
     );
   };
 
+  _addChildFields: (
+    spans: $ReadOnlyArray<[number, $ReadOnlyArray<E>]>
+  ) => void = spans => {
+    const [oldValue, oldTree] = this.props.link.formState;
+    const cleanNode = {
+      errors: cleanErrors,
+      meta: cleanMeta,
+    };
+
+    const newValue = insertSpans(spans, oldValue);
+    const newNodeSpans: Array<
+      [number, $ReadOnlyArray<ShapedTree<E, Extras>>]
+    > = spans.map(([index, content]) => [
+      index,
+      content.map(v => treeFromValue(v, cleanNode)),
+    ]);
+    const newTree = dangerouslySetChildren(
+      insertSpans(newNodeSpans, shapedArrayChildren(oldTree)),
+      oldTree
+    );
+
+    this.props.link.onChange(
+      validate(
+        this.props.validation,
+        setChanged(setTouched([newValue, newTree]))
+      )
+    );
+  };
+
+  _filterChildFields: (
+    predicate: (E, number) => boolean
+  ) => void = predicate => {
+    const [oldValue, oldTree] = this.props.link.formState;
+    const zipped = zip(oldValue, shapedArrayChildren(oldTree));
+
+    const [newValue, newChildren] = unzip(
+      zipped.filter(([value], i) => predicate(value, i))
+    );
+    const newTree = dangerouslySetChildren(newChildren, oldTree);
+
+    this.props.link.onChange(
+      validate(
+        this.props.validation,
+        setChanged(setTouched([newValue, newTree]))
+      )
+    );
+  };
+
   _removeChildField = (index: number) => {
     const [oldValue, oldTree] = this.props.link.formState;
 
@@ -251,6 +308,8 @@ class ArrayField<E> extends React.Component<Props<E>, State> {
             addField: this._addChildField,
             removeField: this._removeChildField,
             moveField: this._moveChildField,
+            addFields: this._addChildFields,
+            filterFields: this._filterChildFields,
           },
           {
             touched: getExtras(formState).meta.touched,

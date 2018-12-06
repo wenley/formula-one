@@ -358,6 +358,95 @@ describe("ArrayField", () => {
         expect(validation).toHaveBeenLastCalledWith(["one", "three", "two"]);
       });
     });
+
+    describe("addFields", () => {
+      it("exposes addFields to add an entry", () => {
+        const formStateValue = ["one", "two", "three"];
+        const formState = mockFormState(formStateValue);
+        const link = mockLink(formState);
+        const renderFn = jest.fn(() => null);
+
+        TestRenderer.create(<ArrayField link={link}>{renderFn}</ArrayField>);
+
+        expect(renderFn).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            addFields: expect.any(Function),
+          }),
+          expect.anything()
+        );
+      });
+      it("validates after entry is added", () => {
+        const formStateValue = ["one", "two", "three"];
+        const formState = mockFormState(formStateValue);
+        const link = mockLink(formState);
+        const renderFn = jest.fn(() => null);
+        const validation = jest.fn(() => ["an error"]);
+
+        TestRenderer.create(
+          <ArrayField validation={validation} link={link}>
+            {renderFn}
+          </ArrayField>
+        );
+
+        expect(validation).toHaveBeenCalledTimes(1);
+
+        const [_, {addFields}] = renderFn.mock.calls[0];
+        addFields([[0, ["negative one", "zero"]], [3, ["four", "five"]]]);
+
+        expect(validation).toHaveBeenCalledTimes(2);
+        expect(validation).toHaveBeenLastCalledWith([
+          "negative one",
+          "zero",
+          "one",
+          "two",
+          "three",
+          "four",
+          "five",
+        ]);
+      });
+    });
+
+    describe("filterFields", () => {
+      it("exposes addFields to add an entry", () => {
+        const formStateValue = ["one", "two", "three"];
+        const formState = mockFormState(formStateValue);
+        const link = mockLink(formState);
+        const renderFn = jest.fn(() => null);
+
+        TestRenderer.create(<ArrayField link={link}>{renderFn}</ArrayField>);
+
+        expect(renderFn).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            filterFields: expect.any(Function),
+          }),
+          expect.anything()
+        );
+      });
+      it("validates after entry is added", () => {
+        const formStateValue = ["one", "two", "three", "four", "five"];
+        const formState = mockFormState(formStateValue);
+        const link = mockLink(formState);
+        const renderFn = jest.fn(() => null);
+        const validation = jest.fn(() => ["an error"]);
+
+        TestRenderer.create(
+          <ArrayField validation={validation} link={link}>
+            {renderFn}
+          </ArrayField>
+        );
+
+        expect(validation).toHaveBeenCalledTimes(1);
+
+        const [_, {filterFields}] = renderFn.mock.calls[0];
+        // remove numbers without "o" and the fourth element
+        filterFields((v, i) => v.indexOf("o") !== -1 && i !== 3);
+
+        expect(validation).toHaveBeenCalledTimes(2);
+        expect(validation).toHaveBeenLastCalledWith(["one", "two"]);
+      });
+    });
   });
 
   describe("customChange", () => {
