@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import type {FieldLink, ClientErrors, ServerErrors, Err} from "./types";
-import {type FormContextPayload} from "./Form";
-import withFormContext from "./withFormContext";
+import {FormContext, type FormContextPayload} from "./Form";
 import {getExtras} from "./formState";
 
 function flattenErrors(errors: Err) {
@@ -39,4 +38,14 @@ function ErrorsHelper<T>(props: Props<T>) {
   });
 }
 
-export default withFormContext(ErrorsHelper);
+// Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
+function wrap<E>(props: $Diff<Props<E>, {+formContext: FormContextPayload}>) {
+  return (
+    <FormContext.Consumer>
+      {formContext => <ErrorsHelper {...props} formContext={formContext} />}
+    </FormContext.Consumer>
+  );
+}
+wrap.defaultProps = ErrorsHelper.defaultProps;
+
+export default wrap;

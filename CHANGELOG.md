@@ -23,6 +23,8 @@
   filterFields: (predicate: (item: E, index: number) => boolean) => void
   ```
 
+- Fix flow types for ErrorHelper.
+
 ### v0.8.2
 
 - Fix incorrect export caused by OS X case insensitivity
