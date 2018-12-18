@@ -9,4 +9,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-.vscode/
+*.sublime-project
+*.sublime-workspace
+.idea
+*.iml
+.vscode
+*.swp
+*.swo
