@@ -4,10 +4,11 @@ import type {ShapedTree, ShapedPath} from "./shapedTree";
 import {type FormState} from "./formState";
 
 export type ClientErrors = Array<string> | "pending";
-export type ServerErrors = Array<string> | "unchecked";
+export type ExternalErrors = Array<string> | "unchecked";
+
 export type Err = {
   client: ClientErrors,
-  server: ServerErrors,
+  external: ExternalErrors,
 };
 
 export type MetaField = {
@@ -31,7 +32,7 @@ export const cleanMeta: MetaField = {
 
 export const cleanErrors: Err = {
   client: "pending",
-  server: "unchecked",
+  external: "unchecked",
 };
 
 export type Extras = {

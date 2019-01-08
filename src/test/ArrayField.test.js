@@ -84,7 +84,7 @@ describe("ArrayField", () => {
         const formState = mockFormState(["value"]);
         // $FlowFixMe
         formState[1].data.errors = {
-          server: ["A server error"],
+          external: ["An external error"],
           client: ["A client error"],
         };
         const link = mockLink(formState);
@@ -101,7 +101,7 @@ describe("ArrayField", () => {
             changed: false,
             shouldShowErrors: expect.anything(),
             unfilteredErrors: expect.arrayContaining([
-              "A server error",
+              "An external error",
               "A client error",
             ]),
             valid: false,
@@ -596,7 +596,7 @@ describe("ArrayField", () => {
           data: {
             errors: {
               client: [],
-              server: "unchecked",
+              external: "unchecked",
             },
             meta: {
               touched: true,
@@ -612,7 +612,7 @@ describe("ArrayField", () => {
                 errors: {
                   // Validations happen after the initial onchange
                   client: "pending",
-                  server: "unchecked",
+                  external: "unchecked",
                 },
                 meta: {
                   touched: true,
@@ -628,7 +628,7 @@ describe("ArrayField", () => {
                 errors: {
                   // Validations happen after the initial onchange
                   client: "pending",
-                  server: "unchecked",
+                  external: "unchecked",
                 },
                 meta: {
                   touched: true,

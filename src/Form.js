@@ -35,32 +35,30 @@ export type FormContextPayload = {
   pristine: boolean,
   submitted: boolean,
 };
-export const FormContext: React.Context<FormContextPayload> = React.createContext(
-  {
-    shouldShowError: () => true,
-    pristine: false,
-    submitted: true,
-  }
-);
+export const FormContext: React.Context<FormContextPayload> = React.createContext({
+  shouldShowError: () => true,
+  pristine: false,
+  submitted: true,
+});
 
-function applyServerErrorsToFormState<T>(
-  serverErrors: null | {[path: string]: Array<string>},
+function applyExternalErrorsToFormState<T>(
+  externalErrors: null | {[path: string]: Array<string>},
   formState: FormState<T>
 ): FormState<T> {
   const [value, oldTree] = formState;
 
   let tree: ShapedTree<T, Extras>;
-  if (serverErrors !== null) {
+  if (externalErrors !== null) {
     // If keys do not appear, no errors
     tree = mapShapedTree(
       ({errors, meta}) => ({
-        errors: {...errors, server: []},
+        errors: {...errors, external: []},
         meta,
       }),
       oldTree
     );
-    Object.keys(serverErrors).forEach(key => {
-      const newErrors: Array<string> = serverErrors[key];
+    Object.keys(externalErrors).forEach(key => {
+      const newErrors: Array<string> = externalErrors[key];
       const path = shapePath(value, pathFromPathString(key));
 
       if (path != null) {
@@ -68,7 +66,7 @@ function applyServerErrorsToFormState<T>(
         tree = updateAtPath(
           path,
           ({errors, meta}) => ({
-            errors: {...errors, server: newErrors},
+            errors: {...errors, external: newErrors},
             meta,
           }),
           tree
@@ -84,7 +82,7 @@ function applyServerErrorsToFormState<T>(
   } else {
     tree = mapShapedTree(
       ({errors, meta}) => ({
-        errors: {...errors, server: []},
+        errors: {...errors, external: []},
         meta,
       }),
       oldTree
@@ -101,19 +99,21 @@ type Props<T, ExtraSubmitData> = {|
   +onSubmit: (T, ExtraSubmitData) => void,
   +onChange: T => void,
   +onValidation: boolean => void,
-  +serverErrors: null | {[path: string]: Array<string>},
+  +externalErrors: null | {[path: string]: Array<string>},
   +children: (
     link: FieldLink<T>,
     onSubmit: (ExtraSubmitData) => void,
     additionalInfo: AdditionalRenderInfo<T>
   ) => React.Node,
 |};
+
 type State<T> = {
   formState: FormState<T>,
   pristine: boolean,
   submitted: boolean,
-  oldServerErrors: null | {[path: string]: Array<string>},
+  oldExternalErrors: null | {[path: string]: Array<string>},
 };
+
 export default class Form<T, ExtraSubmitData> extends React.Component<
   Props<T, ExtraSubmitData>,
   State<T>
@@ -128,15 +128,15 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
     props: Props<T, ExtraSubmitData>,
     state: State<T>
   ) {
-    if (props.serverErrors !== state.oldServerErrors) {
+    if (props.externalErrors !== state.oldExternalErrors) {
       // prettier-ignore
-      const newFormState = applyServerErrorsToFormState/*::<T>*/(
-        props.serverErrors,
+      const newFormState = applyExternalErrorsToFormState/*::<T>*/(
+        props.externalErrors,
         state.formState
       );
       return {
         formState: newFormState,
-        oldServerErrors: props.serverErrors,
+        oldExternalErrors: props.externalErrors,
       };
     }
     return null;
@@ -145,15 +145,15 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
   constructor(props: Props<T, ExtraSubmitData>) {
     super(props);
 
-    const formState = applyServerErrorsToFormState(
-      props.serverErrors,
+    const formState = applyExternalErrorsToFormState(
+      props.externalErrors,
       freshFormState(props.initialValue)
     );
     this.state = {
       formState,
       pristine: true,
       submitted: false,
-      oldServerErrors: props.serverErrors,
+      oldExternalErrors: props.externalErrors,
     };
   }
 

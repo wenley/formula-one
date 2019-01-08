@@ -97,7 +97,7 @@ describe("ObjectField", () => {
         const formState = mockFormState({inner: "value"});
         // $FlowFixMe
         formState[1].data.errors = {
-          server: ["A server error"],
+          external: ["A external error"],
           client: ["A client error"],
         };
         const link = mockLink(formState);
@@ -113,7 +113,7 @@ describe("ObjectField", () => {
             changed: false,
             shouldShowErrors: expect.anything(),
             unfilteredErrors: expect.arrayContaining([
-              "A server error",
+              "A external error",
               "A client error",
             ]),
             valid: false,
@@ -458,7 +458,7 @@ describe("ObjectField", () => {
           data: {
             errors: {
               client: [],
-              server: "unchecked",
+              external: "unchecked",
             },
             meta: {
               touched: true,
@@ -474,7 +474,7 @@ describe("ObjectField", () => {
                 errors: {
                   // Validations happen after the initial onchange
                   client: "pending",
-                  server: "unchecked",
+                  external: "unchecked",
                 },
                 meta: {
                   touched: true,
@@ -490,7 +490,7 @@ describe("ObjectField", () => {
                 errors: {
                   // Validations happen after the initial onchange
                   client: "pending",
-                  server: "unchecked",
+                  external: "unchecked",
                 },
                 meta: {
                   touched: true,

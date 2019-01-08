@@ -15,7 +15,7 @@ import {
   treeFromValue,
 } from "./shapedTree";
 import {cleanMeta, cleanErrors} from "./types";
-import type {Extras, ClientErrors, Validation, ServerErrors} from "./types";
+import type {Extras, ClientErrors, Validation, ExternalErrors} from "./types";
 import {replaceAt} from "./utils/array";
 import invariant from "./utils/invariant";
 
@@ -58,8 +58,8 @@ export function flatRootErrors<T>(formState: FormState<T>): Array<string> {
   if (errors.client !== "pending") {
     flatErrors = flatErrors.concat(errors.client);
   }
-  if (errors.server !== "unchecked") {
-    flatErrors = flatErrors.concat(errors.server);
+  if (errors.external !== "unchecked") {
+    flatErrors = flatErrors.concat(errors.external);
   }
   return flatErrors;
 }
@@ -92,14 +92,14 @@ export function validate<T>(
       ({meta}) => ({
         errors: {
           client: newErrors,
-          server: "unchecked",
+          external: "unchecked",
         },
         meta: {
           ...meta,
           succeeded: meta.succeeded || newErrors.length === 0,
         },
       }),
-      tree
+      tree,
     ),
   ];
 }
@@ -191,7 +191,7 @@ export function replaceArrayChildren<E>(
   return [childValues, dangerouslySetChildren(childTrees, tree)];
 }
 
-function combineExtrasForValidation(oldExtras: Extras, newExtras: Extras) {
+function combineExtrasForValidation(oldExtras: Extras, newExtras: Extras): Extras {
   const {meta: oldMeta, errors: oldErrors} = oldExtras;
   const {meta: newMeta, errors: newErrors} = newExtras;
 
@@ -225,7 +225,7 @@ function combineExtrasForValidation(oldExtras: Extras, newExtras: Extras) {
     },
     errors: {
       client: newErrors.client,
-      server: newErrors.server,
+      external: newErrors.external,
     },
   };
 }
@@ -254,26 +254,26 @@ export function monoidallyCombineFormStatesForValidation<T>(
   ];
 }
 
-function replaceServerErrorsExtra(
-  newErrors: ServerErrors,
-  oldExtras: Extras
+function replaceExternalErrorsExtra(
+  newErrors: ExternalErrors,
+  oldExtras: Extras,
 ): Extras {
   const {meta, errors} = oldExtras;
   return {
     meta,
     errors: {
       client: errors.client,
-      server: newErrors,
+      external: newErrors,
     },
   };
 }
-export function replaceServerErrors<T>(
-  serverErrors: ShapedTree<T, ServerErrors>,
+export function replaceExternalErrors<T>(
+  externalErrors: ShapedTree<T, ExternalErrors>,
   formState: FormState<T>
 ): FormState<T> {
   return [
     formState[0],
-    shapedZipWith(replaceServerErrorsExtra, serverErrors, formState[1]),
+    shapedZipWith(replaceExternalErrorsExtra, externalErrors, formState[1]),
   ];
 }
 

@@ -1,17 +1,17 @@
 // @flow strict
 
 import * as React from "react";
-import type {FieldLink, ClientErrors, ServerErrors, Err} from "./types";
+import type {FieldLink, ClientErrors, ExternalErrors, Err} from "./types";
 import {FormContext, type FormContextPayload} from "./Form";
 import {getExtras} from "./formState";
 
-function flattenErrors(errors: Err) {
+function flattenErrors(errors: Err): $ReadOnlyArray<string> {
   let flatErrors = [];
   if (errors.client !== "pending") {
     flatErrors = flatErrors.concat(errors.client);
   }
-  if (errors.server !== "unchecked") {
-    flatErrors = flatErrors.concat(errors.server);
+  if (errors.external !== "unchecked") {
+    flatErrors = flatErrors.concat(errors.external);
   }
   return flatErrors;
 }
@@ -19,26 +19,26 @@ function flattenErrors(errors: Err) {
 type Props<T> = {|
   +link: FieldLink<T>,
   +formContext: FormContextPayload,
-  +children: ({
+  +children: ({|
     shouldShowErrors: boolean,
     client: ClientErrors,
-    server: ServerErrors,
-    flattened: Array<string>,
-  }) => React.Node,
+    external: ExternalErrors,
+    flattenedErrors: $ReadOnlyArray<string>,
+  |}) => React.Node,
 |};
+
 function ErrorsHelper<T>(props: Props<T>) {
   const {errors, meta} = getExtras(props.link.formState);
-  const flattened = flattenErrors(errors);
+  const flattenedErrors = flattenErrors(errors);
   const shouldShowErrors = props.formContext.shouldShowError(meta);
   return props.children({
     shouldShowErrors,
     client: errors.client,
-    server: errors.server,
-    flattened,
+    external: errors.external,
+    flattenedErrors,
   });
 }
 
-// Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
 function wrap<E>(props: $Diff<Props<E>, {+formContext: FormContextPayload}>) {
   return (
     <FormContext.Consumer>
@@ -46,6 +46,7 @@ function wrap<E>(props: $Diff<Props<E>, {+formContext: FormContextPayload}>) {
     </FormContext.Consumer>
   );
 }
+
 wrap.defaultProps = ErrorsHelper.defaultProps;
 
 export default wrap;
