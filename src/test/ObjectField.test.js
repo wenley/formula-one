@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import TestRenderer from "react-test-renderer";
+import {FormContext} from "../Form";
 import ObjectField from "../ObjectField";
 import {type FieldLink} from "../types";
 
@@ -9,6 +10,12 @@ import {expectLink, mockLink, mockFormState} from "./tools";
 import TestField, {TestInput} from "./TestField";
 
 describe("ObjectField", () => {
+  describe("Sneaky hacks", () => {
+    it("exposes FormContext as its contextType", () => {
+      expect(ObjectField._contextType).toBe(FormContext);
+    });
+  });
+
   describe("ObjectField is a field", () => {
     describe("validates on mount", () => {
       it("ensures that the link inner type matches the type of the validation", () => {

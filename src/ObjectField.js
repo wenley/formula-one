@@ -78,6 +78,7 @@ type State = {|
 |};
 
 class ObjectField<T: {}> extends React.Component<Props<T>, State> {
+  static contextType = FormContext;
   static defaultProps = {
     validation: () => [],
   };
@@ -209,5 +210,6 @@ function wrap<T: {}>(
   );
 }
 wrap.defaultProps = ObjectField.defaultProps;
+wrap._contextType = ObjectField.contextType;
 
 export default wrap;
