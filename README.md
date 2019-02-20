@@ -1,44 +1,191 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# formula-one
+> React Form Management made simple
 
-## Available Scripts
+![npm version](https://badge.fury.io/js/formula-one.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-In the project directory, you can run:
+formula-one is an ergonomic React Form library for building highly preformant and expressive forms.
 
-### `npm start`
+formula-one abstracts away the complexities of error handling, validation, and state management via a powerful concept called **links**. Simply declare the shape of your form with initial values, and *link* the forms data with data entry fields. Each form datum is directly _linked_ to a field, and the field takes care of handling all aspects of its linked data.
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Live Demo
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+See formula-one in action here: https://formula-onedemo.netlify.com
 
-### `npm test`
+_(Source in the  [/example](./example) directory)_
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Usage
 
-### `npm run build`
+### Basic Usage
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+The most beautiful aspect of formula-one is how concise it makes writing forms.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+```jsx
+import {FLTextInput, FLNumberInput, FLSubmitButton} from 'my-form-components';
+import {useformula-one} from 'formula-one';
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+const initialForm = {
+  name: '',
+  age: null,
+  profile: {
+    nick: '',
+  },
+};
 
-### `npm run eject`
+const thirteenAndUp = (age) => {
+  if (age < 13) {
+    return 'Must be 13 years or older to submit this form';
+  }
+}
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+const onSubmit = (formData) => { /* AJAX SEND */ };
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+const MyForm = memo(() => {
+  const formData = useformula-one(initialForm);
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+  return (
+    <form>
+      <FLTextInput link={form.name} label='name' />
+      <FLNumberInput link={form.age} label='age' validator={thirteenAndUp} />
+      <FLTextInput link={profile.nick} label='nick name' />
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+      <FLSubmitButton link={form} onSubmit={onSubmit} />
+    </Form>
+  );
+});
+```
 
-## Learn More
+In the above example, each field is directly tied to a singular datum declared in the form. When the user inputs into the 'name' field, `form.name` updates accordingly. When the user presses the Submit Button, onSubmit is called with its link `form`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+To use formula-one, it's highly suggested to create formula-one specific components _(prefixed with FL)_ that take in a required _link_ and and optional _validator_ prop.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```jsx
+const FLTextInput = ({link, validator, label}: Props) => {
+  // useLink exposes a form's link metaData
+  const {value, onChange, errors} = useLink(link, validator);
+
+  return (
+    <div>
+      <h3>{label}</h3>
+      <TextInput value={value} onChange={onChange} />
+      <p style={{color: 'red'}}>{errors.join(' ')}</p>
+    </div>
+  )
+}
+```
+
+### Validations Example
+
+Imagine you're working on a complex form where you must be strict about data entry formatting. There are form level errors and section level errors and any error will bar the form from being submitted. This is precisely what formula-one was built for!
+
+```jsx
+
+const initialForm = {
+  name: 'Agent Smith',
+  ssn: 'XXX-XXX-XXXX',
+  birthday: Date.now(),
+  nsaData: {
+    Clearance: 'None',
+    ...
+  },
+};
+
+const validateName = (name) => !name.length ? 'must provide name' : null;
+const validateSSN = (ssn) => !ssn.length ? 'must provide ssn' : null;
+const validateClearance (clearance) =>  clearance !== 'None'
+   ? 'You have no clearance!' : null;
+
+const MyForm = () => {
+  const formData = useformula-one(initialForm);
+
+  return (
+    <form>
+      <FLErrorBox link={formData} />
+
+      <FLTextInput link={formData.name} label='name' validator={validateName} />
+      <FLTextInput link={formData.ssn} label='ssn' validator={validateSSN} />
+
+      <Section label='NSA Data'>
+        <FLErrorBox link={formData.nsaData} />
+        <FLTextInput
+          link={formData.nsaData.clearance}
+          label='clearance'
+          validator={validateClearance}
+        />
+        ...
+      </Section>
+
+      <FlSubmitButton onSubmit={onSubmit} />
+    </form>
+  );
+}
+```
+
+In the above example, the FLErrorBox displays all nested validation errors of a given link. This is a powerful pattern when needing to display form level and section level validation errors. Below is the implementation of FLErrorBox.
+
+```jsx
+const F8ErrorBox = ({link}: Props) => {
+  const {childErrors} = useLink(link);
+  const errors = childErrors();
+
+  return (
+    <div className='error-box'>
+      Form Errors:
+      <ul>
+        {errors.map(error => (
+          <li key={error} style={{color: 'red'}}>{error}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+```
+
+### Forms with Arrays of Entries Example
+
+Sometimes we need to write forms where you can add an abitrary number of entries to a list. Consider the following form to be used by your nextdoor dog walking startup: Doggo.
+
+```js
+const initialPet = {
+  name: '',
+  funFact: '',
+};
+
+const initialForm = {
+  name: '',
+  doggos: [
+    initialPet,
+  ],
+};
+```
+
+Our form should allow users to add pets to their list of pets, and remove a pet if they so desire. formula-one handles this by providing a utility `arrayUtils`, which allows you to create callbacks for adding and removing entries to given array form link.
+
+```jsx
+import {useformula-one, arrayUtils, getId} from 'formula-one';
+
+const MyDoggoForm = () => {
+  const formData = useformula-one(initialForm);
+  const [addDoggo, removeDoggo] = arrayUtils(formData.doggos, initialPet);
+
+  return (
+    <form>
+      {formData.doggos.map(doggo => (
+        <div key={getId(doggo)}>
+          <FLTextInput link={doggo.name} label='name'/>
+          <FLTextInput link={doggo.funFact} label='fun fact!'/>
+          <Button onClick={() => {removeDoggo(i)}} label='remove doggo' />
+        </div>
+      ))}
+
+      <Button onClick={addDoggo} label='add doggo!' />
+
+      <FLSubmit link={formData} onSubmit={onSubmit} />
+    </form>
+  );
+}
+```
+
+## MISC
+
+See more formula-one in action in the [/example](./example) directory!

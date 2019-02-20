@@ -1,0 +1,1 @@
+{"version":3,"file":"Form.d.ts","sourceRoot":"","sources":["../../src/datastructures/Form.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,IAAI,EAAuC,MAAM,QAAQ,CAAC;AAEnE,yCAAyC;AACzC,MAAM,CAAC,OAAO,OAAO,IAAI,CAAE,CAAC;IAC1B,QAAQ,EAAE,IAAI,CAAC,CAAC,CAAC,CAAC;gBAEN,SAAS,EAAE,CAAC;IAIxB;qEACiE;IACjE,uBAAuB,CAAC,cAAc,EAAE,MAAM,IAAI;CAGnD"}
