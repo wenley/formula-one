@@ -8,7 +8,7 @@
 
   **Warning**: returning non-null from `customChange` forces a remount of all children. This can cause unintended consequences such as loss of focus on inputs. This will be fixed in a future 0.9 release.
 
-- Add `addFields` and `filterFields` array manipulators. These are currently necessary due to the non-atomic nature of the current `addField` and `removeField` manipulators. They will be made atomic in a future version.
+- Add `addFields`, `filterFields`, and `modifyFields` array manipulators. These are currently necessary due to the non-atomic nature of the current `addField` and `removeField` manipulators. They will be made atomic in a future version.
 
   The API is:
 
@@ -21,6 +21,12 @@
 
   // A way to remove fields from an ArrayField<E>
   filterFields: (predicate: (item: E, index: number) => boolean) => void
+
+  // A way to simultaneously add and remove fields from an ArrayField<E>
+  modifyFields: ({
+    insertSpans: $ReadOnlyArray<Span<E>,
+    filterPredicate: (item: E, index: number) => boolean
+  }) => void
   ```
 
 - Fix flow types for ErrorHelper.

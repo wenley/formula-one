@@ -376,7 +376,7 @@ describe("ArrayField", () => {
           expect.anything()
         );
       });
-      it("validates after entry is added", () => {
+      it("validates after fields are added", () => {
         const formStateValue = ["one", "two", "three"];
         const formState = mockFormState(formStateValue);
         const link = mockLink(formState);
@@ -408,7 +408,7 @@ describe("ArrayField", () => {
     });
 
     describe("filterFields", () => {
-      it("exposes addFields to add an entry", () => {
+      it("exposes filterFields to filter entries", () => {
         const formStateValue = ["one", "two", "three"];
         const formState = mockFormState(formStateValue);
         const link = mockLink(formState);
@@ -424,7 +424,7 @@ describe("ArrayField", () => {
           expect.anything()
         );
       });
-      it("validates after entry is added", () => {
+      it("validates after fields are filtered", () => {
         const formStateValue = ["one", "two", "three", "four", "five"];
         const formState = mockFormState(formStateValue);
         const link = mockLink(formState);
@@ -445,6 +445,55 @@ describe("ArrayField", () => {
 
         expect(validation).toHaveBeenCalledTimes(2);
         expect(validation).toHaveBeenLastCalledWith(["one", "two"]);
+      });
+    });
+
+    describe("modifyFields", () => {
+      it("exposes modifyFields to add and remove entries atomically", () => {
+        const formStateValue = ["one", "two", "three"];
+        const formState = mockFormState(formStateValue);
+        const link = mockLink(formState);
+        const renderFn = jest.fn(() => null);
+
+        TestRenderer.create(<ArrayField link={link}>{renderFn}</ArrayField>);
+
+        expect(renderFn).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            modifyFields: expect.any(Function),
+          }),
+          expect.anything()
+        );
+      });
+      it("validates after fields are modified", () => {
+        const formStateValue = ["one", "two", "three"];
+        const formState = mockFormState(formStateValue);
+        const link = mockLink(formState);
+        const renderFn = jest.fn(() => null);
+        const validation = jest.fn(() => ["an error"]);
+
+        TestRenderer.create(
+          <ArrayField validation={validation} link={link}>
+            {renderFn}
+          </ArrayField>
+        );
+
+        expect(validation).toHaveBeenCalledTimes(1);
+
+        const [_, {modifyFields}] = renderFn.mock.calls[0];
+        modifyFields({
+          insertSpans: [[0, ["start"]], [2, ["middle", "content"]]],
+          filterPredicate: v => v !== "one",
+        });
+
+        expect(validation).toHaveBeenCalledTimes(2);
+        expect(validation).toHaveBeenLastCalledWith([
+          "start",
+          "two",
+          "middle",
+          "content",
+          "three",
+        ]);
       });
     });
   });

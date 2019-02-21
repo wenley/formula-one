@@ -25,6 +25,7 @@ import {
   moveFromTo,
   insertAt,
   insertSpans,
+  modify,
   zip,
   unzip,
 } from "./utils/array";
@@ -58,7 +59,13 @@ type Props<E> = {|
       removeField: (index: number) => void,
       moveField: (oldIndex: number, newIndex: number) => void,
       addFields: (spans: $ReadOnlyArray<[number, $ReadOnlyArray<E>]>) => void,
-      filterFields: (predicate: (E, number) => boolean) => void,
+      filterFields: (
+        predicate: (E, number, $ReadOnlyArray<E>) => boolean
+      ) => void,
+      modifyFields: ({
+        insertSpans?: $ReadOnlyArray<[number, $ReadOnlyArray<E>]>,
+        filterPredicate?: (E, number, $ReadOnlyArray<E>) => boolean,
+      }) => void,
     },
     additionalInfo: AdditionalRenderInfo<Array<E>>
   ) => React.Node,
@@ -239,13 +246,61 @@ class ArrayField<E> extends React.Component<Props<E>, State> {
   };
 
   _filterChildFields: (
-    predicate: (E, number) => boolean
+    predicate: (E, number, $ReadOnlyArray<E>) => boolean
   ) => void = predicate => {
     const [oldValue, oldTree] = this.props.link.formState;
     const zipped = zip(oldValue, shapedArrayChildren(oldTree));
 
     const [newValue, newChildren] = unzip(
-      zipped.filter(([value], i) => predicate(value, i))
+      zipped.filter(([value], i, arr) =>
+        predicate(value, i, arr.map(([v]) => v))
+      )
+    );
+    const newTree = dangerouslySetChildren(newChildren, oldTree);
+
+    this.props.link.onChange(
+      validate(
+        this.props.validation,
+        setChanged(setTouched([newValue, newTree]))
+      )
+    );
+  };
+
+  _modifyChildFields: ({
+    insertSpans?: $ReadOnlyArray<[number, $ReadOnlyArray<E>]>,
+    filterPredicate?: (E, number, $ReadOnlyArray<E>) => boolean,
+  }) => void = ({insertSpans, filterPredicate}) => {
+    const [oldValue, oldTree] = this.props.link.formState;
+    const cleanNode = {
+      errors: cleanErrors,
+      meta: cleanMeta,
+    };
+
+    // TODO(zach): there's a less complicated, more functorial way to do this
+    // augment, then unaugment
+
+    const zipped = zip(oldValue, shapedArrayChildren(oldTree));
+
+    // augment the spans with fresh nodes
+    const augmentedSpans =
+      insertSpans !== undefined
+        ? insertSpans.map(([index, contents]) => [
+            index,
+            contents.map(v => [v, treeFromValue(v, cleanNode)]),
+          ])
+        : undefined;
+
+    // augment the predicate to work on formstates
+    const augmentedPredicate =
+      filterPredicate !== undefined
+        ? ([v, _], i, arr) => filterPredicate(v, i, arr.map(([v, _]) => v))
+        : undefined;
+
+    const [newValue, newChildren] = unzip(
+      modify(
+        {insertSpans: augmentedSpans, filterPredicate: augmentedPredicate},
+        zipped
+      )
     );
     const newTree = dangerouslySetChildren(newChildren, oldTree);
 
@@ -310,6 +365,7 @@ class ArrayField<E> extends React.Component<Props<E>, State> {
             moveField: this._moveChildField,
             addFields: this._addChildFields,
             filterFields: this._filterChildFields,
+            modifyFields: this._modifyChildFields,
           },
           {
             touched: getExtras(formState).meta.touched,

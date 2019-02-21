@@ -29,34 +29,65 @@ export function moveFromTo<E>(
   return insertAt(newIndex, arr[oldIndex], without);
 }
 
-export function insertSpans<E>(
-  spans: $ReadOnlyArray<[number, $ReadOnlyArray<E>]>,
+type AddSpan<E> = [number, $ReadOnlyArray<E>];
+
+export function modify<E>(
+  {
+    insertSpans,
+    filterPredicate,
+  }: {
+    insertSpans?: $ReadOnlyArray<AddSpan<E>>,
+    filterPredicate?: (E, number, $ReadOnlyArray<E>) => boolean,
+  },
   arr: $ReadOnlyArray<E>
 ): Array<E> {
-  // no duplicated indices are allowed, ECMAScript Array.sort is not stable by spec
-  const indexSet = new Set(spans.map(([i]) => i));
-  if (indexSet.size !== spans.length) {
-    throw new Error(
-      "You cannot insert two spans at the same index. Combine the values of the spans."
-    );
+  let sortedSpans = [];
+  if (insertSpans !== undefined) {
+    // no duplicated indices are allowed, ECMAScript Array.sort is not stable by spec
+    const indexSet = new Set(insertSpans.map(([i]) => i));
+    if (indexSet.size !== insertSpans.length) {
+      throw new Error(
+        "You cannot insert two spans at the same index. Combine the values of the spans."
+      );
+    }
+
+    // sort spans by insertion position
+    sortedSpans = [...insertSpans];
+    sortedSpans.sort(([i], [j]) => i - j);
   }
 
-  // sort spans by insertion position
-  const spansCopy = [...spans];
-  spansCopy.sort(([i], [j]) => i - j);
+  // The next span to insert
+  let nextSpanIndex = 0;
 
   // build the new array in one pass
   let ret = [];
-  let lastIndexInsertedAt = 0;
-  spansCopy.forEach(([index, contents]) => {
-    // All the content before this
-    ret = ret.concat(arr.slice(lastIndexInsertedAt, index));
+  for (let i = 0; i < arr.length; i += 1) {
+    if (nextSpanIndex < sortedSpans.length) {
+      const [index, contents] = sortedSpans[nextSpanIndex];
+      if (index === i) {
+        ret = ret.concat(contents);
+        nextSpanIndex += 1;
+      }
+    }
+    if (filterPredicate === undefined || filterPredicate(arr[i], i, arr)) {
+      ret.push(arr[i]);
+    }
+  }
+
+  // insert spans after the end of the array
+  for (let i = nextSpanIndex; i < sortedSpans.length; i += 1) {
+    const [_, contents] = sortedSpans[i];
     ret = ret.concat(contents);
-    lastIndexInsertedAt = index;
-  });
-  ret = ret.concat(arr.slice(lastIndexInsertedAt));
+  }
 
   return ret;
+}
+
+export function insertSpans<E>(
+  spans: $ReadOnlyArray<AddSpan<E>>,
+  arr: $ReadOnlyArray<E>
+): Array<E> {
+  return modify({insertSpans: spans}, arr);
 }
 
 // Strict on length
