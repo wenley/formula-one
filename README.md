@@ -8,12 +8,6 @@ formula-one is an ergonomic React Form library for building highly preformant an
 
 formula-one abstracts away the complexities of error handling, validation, and state management via a powerful concept called **links**. Simply declare the shape of your form with initial values, and *link* the forms data with data entry fields. Each form datum is directly _linked_ to a field, and the field takes care of handling all aspects of its linked data.
 
-## Live Demo
-
-See formula-one in action here: https://formula-onedemo.netlify.com
-
-_(Source in the  [/example](./example) directory)_
-
 ## Usage
 
 ### Basic Usage
@@ -22,7 +16,7 @@ The most beautiful aspect of formula-one is how concise it makes writing forms.
 
 ```jsx
 import {FLTextInput, FLNumberInput, FLSubmitButton} from 'my-form-components';
-import {useformula-one} from 'formula-one';
+import {useF1} from 'formula-one';
 
 const initialForm = {
   name: '',
@@ -41,7 +35,7 @@ const thirteenAndUp = (age) => {
 const onSubmit = (formData) => { /* AJAX SEND */ };
 
 const MyForm = memo(() => {
-  const formData = useformula-one(initialForm);
+  const formData = useF1(initialForm);
 
   return (
     <form>
@@ -96,7 +90,7 @@ const validateClearance (clearance) =>  clearance !== 'None'
    ? 'You have no clearance!' : null;
 
 const MyForm = () => {
-  const formData = useformula-one(initialForm);
+  const formData = useF1(initialForm);
 
   return (
     <form>
@@ -165,7 +159,7 @@ Our form should allow users to add pets to their list of pets, and remove a pet 
 import {useformula-one, arrayUtils, getId} from 'formula-one';
 
 const MyDoggoForm = () => {
-  const formData = useformula-one(initialForm);
+  const formData = useF1(initialForm);
   const [addDoggo, removeDoggo] = arrayUtils(formData.doggos, initialPet);
 
   return (
