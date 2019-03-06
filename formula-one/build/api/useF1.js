@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const react_1 = require("react");
 const Form_1 = __importDefault(require("../datastructures/Form"));
+const peekValue_1 = __importDefault(require("./peekValue"));
 /** This hook lets you turn in a form schema into a
  * formula-one form object
  * @param initialForm The inital state of your form
@@ -14,7 +15,7 @@ const useF1 = (initialForm) => {
     const [form, updateForm] = react_1.useState(formTree);
     // updateCallback is called whenever any onChange is called
     const updateCallback = () => {
-        updateForm(form);
+        updateForm(new Form_1.default(peekValue_1.default(form.formNode)));
     };
     form.subscribeUpdateCallback(updateCallback);
     return form.formNode;

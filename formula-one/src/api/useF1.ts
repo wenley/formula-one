@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import Form from '../datastructures/Form';
+import peekValue from './peekValue';
 import { subscribeUpdateCallback, Link } from '../datastructures/Link';
 
 /** This hook lets you turn in a form schema into a
@@ -12,7 +13,7 @@ const useF1 = <T>(initialForm: T): Link<T> => {
 
   // updateCallback is called whenever any onChange is called
   const updateCallback = (): void => {
-    updateForm(form);
+    updateForm(new Form(peekValue(form.formNode)));
   }
 
   form.subscribeUpdateCallback(updateCallback);
