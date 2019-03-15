@@ -30,6 +30,7 @@
   ```
 
 - Fix flow types for ErrorHelper.
+- Bump internal flow version to 0.95.1
 
 ### v0.8.2
 
