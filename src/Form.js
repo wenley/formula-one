@@ -131,8 +131,7 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
     state: State<T>
   ) {
     if (props.serverErrors !== state.oldServerErrors) {
-      // prettier-ignore
-      const newFormState = applyServerErrorsToFormState/*::<T>*/(
+      const newFormState = applyServerErrorsToFormState<T>(
         props.serverErrors,
         state.formState
       );
