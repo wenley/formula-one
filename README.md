@@ -323,7 +323,7 @@ An example of how these data could be used:
 
 ### Multiple submission buttons
 
-Sometimes, you need to have multiple submission buttons and need to know which button was clicked in your `onSubmit` prop callback. This can be achieved by passing additional information as an argument to the `handleSubmit` argument to your `<Form>`'s render prop. This argument will be passed to your `onSubmit` prop callback as a second argument. If your `onSubmit` prop callback is typed to make this extra data mandatory, they inner `handleSubmit` callback will require that data.
+Sometimes, you need to have multiple submission buttons and need to know which button was clicked in your `onSubmit` prop callback. This can be achieved by passing additional information as an argument to the `handleSubmit` argument to your `<Form>`'s render prop. This argument will be passed to your `onSubmit` prop callback as a second argument. If your `onSubmit` prop callback is typed to make this extra data mandatory, the inner `handleSubmit` callback will require that data.
 
 Example:
 
@@ -351,7 +351,7 @@ function handleSubmit(value: User, saveOrSubmit: "save" | "submit") {
 
 ### Submitting forms externally
 
-It is easy to sumbit a **formula-one** form using the `handleSubmit` argument provided to `<Form>`'s render prop, but sometimes you need to submit a `<Form>` from outside. This is possible using the `submit()` method available on `<Form>` along with a React ref to that `<Form>` element. This `submit()` method can also receive additional user-specified information, as stated above.
+It is easy to submit a **formula-one** form using the `handleSubmit` argument provided to `<Form>`'s render prop, but sometimes you need to submit a `<Form>` from outside. This is possible using the `submit()` method available on `<Form>` along with a React ref to that `<Form>` element. This `submit()` method can also receive additional user-specified information, as stated above.
 
 ```jsx
 class MyExternalButtonExample extends React.Component<Props> {
