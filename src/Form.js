@@ -26,7 +26,7 @@ import {
   mapShapedTree,
 } from "./shapedTree";
 import {pathFromPathString} from "./tree";
-import {type FeedbackStrategy} from "./feedbackStrategies";
+import FeedbackStrategies, {type FeedbackStrategy} from "./feedbackStrategies";
 
 export type FormContextPayload = {
   shouldShowError: (metaField: MetaField) => boolean,
@@ -124,6 +124,8 @@ export default class Form<T, ExtraSubmitData> extends React.Component<
     onChange: () => {},
     onSubmit: () => {},
     onValidation: () => {},
+    feedbackStrategy: FeedbackStrategies.Always,
+    serverErrors: null,
   };
 
   static getDerivedStateFromProps(

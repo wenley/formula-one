@@ -48,7 +48,6 @@ describe("Form", () => {
       TestRenderer.create(
         <Form
           initialValue={1}
-          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{"/": ["Server error", "Another server error"]}}
         >
@@ -87,7 +86,6 @@ describe("Form", () => {
             simple: 3,
             complex: [{inner: "hello"}, {inner: "there"}],
           }}
-          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{
             "/": ["Root error"],
@@ -127,7 +125,6 @@ describe("Form", () => {
           initialValue={{
             array: [],
           }}
-          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{
             "/array": ["Cannot be empty"],
@@ -149,7 +146,6 @@ describe("Form", () => {
           initialValue={{
             array: [],
           }}
-          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
           serverErrors={{
             "/array": [],
@@ -186,9 +182,7 @@ describe("Form", () => {
             noErrors: "bar",
             array: ["baz", "quux"],
           }}
-          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
-          serverErrors={null}
         >
           {link => (
             <ObjectField link={link} validation={() => ["Toplevel error"]}>
@@ -253,9 +247,7 @@ describe("Form", () => {
             naughty: "foo",
             nice: "bar",
           }}
-          feedbackStrategy={FeedbackStrategies.Always}
           onSubmit={onSubmit}
-          serverErrors={null}
         >
           {link => (
             <ObjectField link={link} validation={() => ["Toplevel error"]}>
@@ -295,12 +287,7 @@ describe("Form", () => {
       const onSubmit = jest.fn();
       const renderFn = jest.fn(() => null);
       const renderer = TestRenderer.create(
-        <Form
-          initialValue={1}
-          feedbackStrategy={FeedbackStrategies.Always}
-          onSubmit={onSubmit}
-          serverErrors={null}
-        >
+        <Form initialValue={1} onSubmit={onSubmit}>
           {renderFn}
         </Form>
       );
@@ -317,12 +304,7 @@ describe("Form", () => {
       const onSubmit = jest.fn();
       const renderFn = jest.fn(() => null);
       const renderer = TestRenderer.create(
-        <Form
-          initialValue={1}
-          feedbackStrategy={FeedbackStrategies.Always}
-          onSubmit={onSubmit}
-          serverErrors={null}
-        >
+        <Form initialValue={1} onSubmit={onSubmit}>
           {renderFn}
         </Form>
       );
@@ -344,12 +326,7 @@ describe("Form", () => {
         <FormContext.Consumer>{contextExtractor}</FormContext.Consumer>
       ));
       TestRenderer.create(
-        <Form
-          initialValue={1}
-          feedbackStrategy={FeedbackStrategies.Always}
-          onSubmit={onSubmit}
-          serverErrors={{"/": ["Server error", "Another server error"]}}
-        >
+        <Form initialValue={1} onSubmit={onSubmit}>
           {renderFn}
         </Form>
       );
@@ -377,12 +354,7 @@ describe("Form", () => {
         <FormContext.Consumer>{contextExtractor}</FormContext.Consumer>
       ));
       TestRenderer.create(
-        <Form
-          initialValue={1}
-          feedbackStrategy={FeedbackStrategies.Always}
-          onSubmit={jest.fn()}
-          serverErrors={{"/": ["Server error", "Another server error"]}}
-        >
+        <Form initialValue={1} onSubmit={jest.fn()}>
           {renderFn}
         </Form>
       );
@@ -410,12 +382,7 @@ describe("Form", () => {
         <FormContext.Consumer>{contextExtractor}</FormContext.Consumer>
       );
       TestRenderer.create(
-        <Form
-          initialValue={1}
-          feedbackStrategy={FeedbackStrategies.Always}
-          onSubmit={onSubmit}
-          serverErrors={{"/": ["Server error", "Another server error"]}}
-        >
+        <Form initialValue={1} onSubmit={onSubmit}>
           {renderFn}
         </Form>
       );
@@ -468,12 +435,7 @@ describe("Form", () => {
       <FormContext.Consumer>{contextExtractor}</FormContext.Consumer>
     ));
     TestRenderer.create(
-      <Form
-        initialValue={1}
-        feedbackStrategy={FeedbackStrategies.Always}
-        onSubmit={onSubmit}
-        serverErrors={{"/": ["Server error", "Another server error"]}}
-      >
+      <Form initialValue={1} onSubmit={onSubmit}>
         {renderFn}
       </Form>
     );
@@ -491,12 +453,7 @@ describe("Form", () => {
     const onSubmit = jest.fn();
     const renderFn = jest.fn();
     TestRenderer.create(
-      <Form
-        initialValue={1}
-        feedbackStrategy={FeedbackStrategies.Always}
-        onSubmit={onSubmit}
-        serverErrors={{"/": ["Server error", "Another server error"]}}
-      >
+      <Form initialValue={1} onSubmit={onSubmit}>
         {renderFn}
       </Form>
     );
@@ -513,12 +470,7 @@ describe("Form", () => {
   it("Enforces types on onSubmit", () => {
     const onSubmit: (value: number, extra: "extra") => void = () => {};
     TestRenderer.create(
-      <Form
-        initialValue={1}
-        feedbackStrategy={FeedbackStrategies.Always}
-        onSubmit={onSubmit}
-        serverErrors={{"/": ["Server error", "Another server error"]}}
-      >
+      <Form initialValue={1} onSubmit={onSubmit}>
         {(_, onSubmit) => (
           <button
             onClick={() => {
@@ -538,12 +490,7 @@ describe("Form", () => {
     const onChange = jest.fn();
     const renderFn = jest.fn(() => null);
     TestRenderer.create(
-      <Form
-        initialValue={1}
-        feedbackStrategy={FeedbackStrategies.Always}
-        onChange={onChange}
-        serverErrors={{"/": ["Server error", "Another server error"]}}
-      >
+      <Form initialValue={1} onChange={onChange}>
         {renderFn}
       </Form>
     );
@@ -558,12 +505,7 @@ describe("Form", () => {
   it("Calls onValidation when a part of the value is validated", () => {
     const onValidation = jest.fn();
     const renderer = TestRenderer.create(
-      <Form
-        initialValue={""}
-        feedbackStrategy={FeedbackStrategies.Always}
-        onValidation={onValidation}
-        serverErrors={{"/": ["Server error", "Another server error"]}}
-      >
+      <Form initialValue={""} onValidation={onValidation}>
         {link => (
           <TestField
             link={link}
