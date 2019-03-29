@@ -29,7 +29,7 @@ import {
   zip,
   unzip,
 } from "./utils/array";
-import {FormContext, type FormContextPayload} from "./Form";
+import {FormContext} from "./Form";
 import {
   type FormState,
   replaceArrayChild,
@@ -49,7 +49,6 @@ type Links<E> = Array<$Call<ToFieldLink, E>>;
 
 type Props<E> = {|
   +link: FieldLink<Array<E>>,
-  +formContext: FormContextPayload,
   +validation: Validation<Array<E>>,
   +customChange?: CustomChange<Array<E>>,
   +children: (
@@ -98,10 +97,11 @@ type State = {|
   nonce: number,
 |};
 
-class ArrayField<E> extends React.Component<Props<E>, State> {
+export default class ArrayField<E> extends React.Component<Props<E>, State> {
   static defaultProps = {
     validation: () => [],
   };
+  static contextType = FormContext;
 
   state = {
     nonce: 0,
@@ -347,7 +347,7 @@ class ArrayField<E> extends React.Component<Props<E>, State> {
 
   render() {
     const {formState} = this.props.link;
-    const {shouldShowError} = this.props.formContext;
+    const {shouldShowError} = this.context;
 
     const links = makeLinks(
       formState,
@@ -381,15 +381,3 @@ class ArrayField<E> extends React.Component<Props<E>, State> {
     );
   }
 }
-
-// Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
-function wrap<E>(props: $Diff<Props<E>, {+formContext: FormContextPayload}>) {
-  return (
-    <FormContext.Consumer>
-      {formContext => <ArrayField {...props} formContext={formContext} />}
-    </FormContext.Consumer>
-  );
-}
-wrap.defaultProps = ArrayField.defaultProps;
-
-export default wrap;
