@@ -2,65 +2,92 @@
 
 **formula-one** is a library which makes it easier to write type-safe forms with validations and complex inputs.
 
-## A simple example
+## A minimal example, with no validation
+
+[Edit the working example on CodeSandbox](https://codesandbox.io/s/549m5n0y8x?module=%2Fsrc%2FSimpleExample.js)
 
 ```jsx
+// @flow strict
+
+import React from "react";
+import {Form, Field, ObjectField, FeedbackStrategies} from "formula-one";
+
 type Person = {
   name: string,
   age: string,
   side: "Empire" | "Rebels",
 };
 
-const emptyPerson: Person = {
+const EMPTY_PERSON: Person = {
   name: "",
-  age: null,
+  age: "",
   side: "Empire",
 };
 
-<Form
-  feedbackStrategy="Always"
-  initialValue={emptyPerson}
-  onSubmit={savePerson}
->
-  {(link, onSubmit) => (
-    <ObjectField link={link}>
-      {links => (
-        <>
-          <Field link={links.name}>
-            {(value, errors, onChange, onBlur) => (
+export default function SimpleExample() {
+  return (
+    <div className="App">
+      <Form
+        initialValue={EMPTY_PERSON}
+        onSubmit={person => console.log("Submitted", person)}
+        // TODO(dmnd): Remove following props after new version is published
+        serverErrors={null}
+        feedbackStrategy={FeedbackStrategies.Always}
+      >
+        {(link, onSubmit) => (
+          <ObjectField link={link}>
+            {links => (
               <>
-                <label>Name:</label>
-                <input type="text" onChange={onChange} onBlur={onBlur} />
+                <Field link={links.name}>
+                  {(value, errors, onChange) => (
+                    <label>
+                      <div>Name</div>
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={e => onChange(e.target.value)}
+                      />
+                    </label>
+                  )}
+                </Field>
+                <Field link={links.age}>
+                  {(value, errors, onChange) => (
+                    <label>
+                      <div>Age</div>
+                      <input
+                        type="text"
+                        onChange={e => onChange(e.target.value)}
+                        value={value}
+                      />
+                    </label>
+                  )}
+                </Field>
+                <Field link={links.side}>
+                  {(value, errors, onChange) => (
+                    <label>
+                      <div>Side</div>
+                      <select
+                        onChange={e => onChange(e.target.value)}
+                        value={value}
+                      >
+                        <option value="Empire">Empire</option>
+                        <option value="Rebels">Rebels</option>
+                      </select>
+                    </label>
+                  )}
+                </Field>
+
+                <div>
+                  <button onClick={onSubmit}>Submit</button>
+                </div>
               </>
             )}
-          </Field>
-          <Field link={links.age}>
-            {(value, errors, onChange, onBlur) => (
-              <>
-                <label>Age:</label>
-                <input type="text" onChange={onChange} onBlur={onBlur} />
-              </>
-            )}
-          </Field>
-          <Field link={links.side}>
-            {(value, errors, onChange, onBlur) => (
-              <>
-                <label>Side:</label>
-                <select onChange={onChange} onBlur={onBlur} value={value}>
-                  <option value="Empire">Empire</option>
-                  <option value="Rebels">Rebels</option>
-                </select>
-              </>
-            )}
-          </Field>
-          <div>
-            <button onClick={onSubmit}>Submit</button>
-          </div>
-        </>
-      )}
-    </ObjectField>
-  )}
-</Form>;
+          </ObjectField>
+        )}
+      </Form>
+    </div>
+  );
+}
 ```
 
 ## Philosophy
