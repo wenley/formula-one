@@ -3,7 +3,7 @@
 import * as React from "react";
 import type {FieldLink, Validation, Err, AdditionalRenderInfo} from "./types";
 import {mapRoot} from "./shapedTree";
-import {FormContext, type FormContextPayload} from "./Form";
+import {FormContext} from "./Form";
 import {
   setExtrasTouched,
   getExtras,
@@ -15,7 +15,6 @@ import {
 type Props<T> = {|
   +link: FieldLink<T>,
   +validation: Validation<T>,
-  +formContext: FormContextPayload,
   +children: (
     value: T,
     errors: $ReadOnlyArray<string>,
@@ -36,10 +35,11 @@ function getErrors(errors: Err) {
   return flatErrors;
 }
 
-class Field<T> extends React.Component<Props<T>> {
+export default class Field<T> extends React.Component<Props<T>> {
   static defaultProps = {
     validation: () => [],
   };
+  static contextType = FormContext;
 
   initialValidate() {
     const {
@@ -78,9 +78,9 @@ class Field<T> extends React.Component<Props<T>> {
     const {formState} = this.props.link;
     const [value] = formState;
     const {meta, errors} = getExtras(formState);
-    const {shouldShowError} = this.props.formContext;
+    const {shouldShowError} = this.context;
 
-    const flatErrors = this.props.formContext.shouldShowError(meta)
+    const flatErrors = this.context.shouldShowError(meta)
       ? getErrors(errors)
       : [];
 
@@ -95,14 +95,3 @@ class Field<T> extends React.Component<Props<T>> {
     });
   }
 }
-
-function wrap<T>(props: $Diff<Props<T>, {+formContext: FormContextPayload}>) {
-  return (
-    <FormContext.Consumer>
-      {formContext => <Field {...props} formContext={formContext} />}
-    </FormContext.Consumer>
-  );
-}
-wrap.defaultProps = Field.defaultProps;
-
-export default wrap;

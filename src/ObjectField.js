@@ -36,7 +36,6 @@ type Links<T: {}> = $ObjMap<T, ToFieldLink>;
 
 type Props<T: {}> = {|
   +link: FieldLink<T>,
-  +formContext: FormContextPayload,
   +validation: Validation<T>,
   +customChange?: CustomChange<T>,
   +children: (
@@ -77,8 +76,12 @@ type State = {|
   nonce: number,
 |};
 
-class ObjectField<T: {}> extends React.Component<Props<T>, State> {
+export default class ObjectField<T: {}> extends React.Component<
+  Props<T>,
+  State
+> {
   static contextType = FormContext;
+  static _contextType = FormContext;
   static defaultProps = {
     validation: () => [],
   };
@@ -175,7 +178,7 @@ class ObjectField<T: {}> extends React.Component<Props<T>, State> {
 
   render() {
     const {formState} = this.props.link;
-    const {shouldShowError} = this.props.formContext;
+    const {shouldShowError} = this.context;
 
     const links = makeLinks(
       this.props.link.formState,
@@ -198,18 +201,3 @@ class ObjectField<T: {}> extends React.Component<Props<T>, State> {
     );
   }
 }
-
-// Using a HOC here is not possible due to a Flow bug: https://github.com/facebook/flow/issues/6903
-function wrap<T: {}>(
-  props: $Diff<Props<T>, {+formContext: FormContextPayload}>
-) {
-  return (
-    <FormContext.Consumer>
-      {formContext => <ObjectField {...props} formContext={formContext} />}
-    </FormContext.Consumer>
-  );
-}
-wrap.defaultProps = ObjectField.defaultProps;
-wrap._contextType = ObjectField.contextType;
-
-export default wrap;
