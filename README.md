@@ -110,23 +110,35 @@ In **formula-one**, all of the form's state is held in the `<Form>` component, a
 
 An example of a `Field<string>` which doesn't allow empty strings:
 
+[Edit the working example on CodeSandbox](https://codesandbox.io/s/rj25l331no?module=%2Fsrc%2FNoEmptyStrings.js)
+
 ```jsx
 function noEmptyStrings(s: string): Array<string> {
   if (s === "") {
     return ["Cannot be empty"];
   }
+  return [];
 }
 
 <Field link={link} validation={noEmptyStrings}>
-  {(value, errors, onChange, onBlur)} => (
-  <>
-    <input type="text" value={value} />
-    <ul class="input_errors">
-      {errors.map(error => (
-        <li>{error}</li>
-      ))}
-    </ul>
-  </>
+  {(value, errors, onChange) => (
+    <>
+      <label>
+        <div>Name</div>
+        <input
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+        />
+        {errors ? (
+          <ul className="error">
+            {errors.map(e => (
+              <li key={e}>{e}</li>
+            ))}
+          </ul>
+        ) : null}
+      </label>
+    </>
   )}
 </Field>;
 ```
@@ -158,10 +170,12 @@ const myStrategy = or(Changed, Submitted);
 
 To specify multiple validations for a single field, simply run the validations in sequence and serialize their errors into a single array.
 
+[Edit the working example on CodeSandbox](https://codesandbox.io/s/z32q7ml1y4?module=%2Fsrc%2FMultipleValidations.js)
+
 ```jsx
 function validate(s: string): Array<string> {
-  return [noShortStrings, mustHaveLettersAndNumbers, noLongStrings].flatMap(
-    validation => validation(s)
+  return [noEmptyStrings, mustHaveNumbers, noLongStrings].flatMap(validation =>
+    validation(s)
   );
 }
 ```
@@ -176,6 +190,8 @@ Often, you may want to edit a list of items in a form. **formula-one** exposes a
 
 For example, imagine you have a form for a person, who has a name, but also some number of pets, who each have their own name.
 
+[Edit the working example on CodeSandbox](https://codesandbox.io/s/xlzyz3o6no?module=%2Fsrc%2FArrays.js)
+
 ```jsx
 type Person = {
   name: string,
@@ -184,62 +200,81 @@ type Person = {
   }>,
 };
 
-const emptyPerson = {
+const emptyPerson: Person = {
   name: "",
   pets: [],
 };
 
-<Form>
-  {(link, onSubmit) => (
-    <ObjectField link={link}>
-      {links => (
-        <>
-          <Field link={links.name}>
-            {(value, errors, onChange, onBlur) => (
+export default function() {
+  return (
+    <div className="App">
+      <Form
+        initialValue={emptyPerson}
+        onSubmit={p => console.log("Submitted", p)}
+        // TODO(dmnd): Remove following props after new version is published
+        serverErrors={null}
+        feedbackStrategy={FeedbackStrategies.Always}
+      >
+        {(link, onSubmit) => (
+          <ObjectField link={link}>
+            {links => (
               <>
-                <label>Name:</label>
-                <input type="text" onChange={onChange} onBlur={onBlur} />
+                <Field link={links.name}>
+                  {(value, errors, onChange) => (
+                    <label>
+                      <div>Name</div>
+                      <input
+                        type="text"
+                        onChange={e => onChange(e.target.value)}
+                        value={value}
+                      />
+                    </label>
+                  )}
+                </Field>
+                <ArrayField link={links.pets}>
+                  {(links, {addField}) => (
+                    <ul>
+                      {links.map((link, i) => (
+                        <ObjectField key={i} link={link}>
+                          {link => (
+                            <Field link={link.name}>
+                              {(value, errors, onChange) => (
+                                <li>
+                                  Pet #{i + 1}
+                                  <input
+                                    type="text"
+                                    value={value}
+                                    onChange={e => onChange(e.target.value)}
+                                  />
+                                </li>
+                              )}
+                            </Field>
+                          )}
+                        </ObjectField>
+                      ))}
+                      {links.length === 0 ? "No pets :(" : null}
+                      <button
+                        onClick={() => addField(links.length, {name: ""})}
+                      >
+                        Add pet
+                      </button>
+                    </ul>
+                  )}
+                </ArrayField>
+                <div>
+                  <button onClick={onSubmit}>Submit</button>
+                </div>
               </>
             )}
-          </Field>
-          <ArrayField link={links.pets}>
-            {(links, {addField}) => (
-              <ul>
-                {links.map((link, i) => (
-                  <ObjectField link={link}>
-                    {link => (
-                      <Field link={link}>
-                        {(value, errors, onChange, onBlur) => (
-                          <li>
-                            Pet #{i + 1}
-                            <input
-                              type="text"
-                              value={value}
-                              onChange={onChange}
-                              onBlur={onBlur}
-                            />
-                          </li>
-                        )}
-                      </Field>
-                    )}
-                  </ObjectField>
-                ))}
-                {links.length === 0 ? "No pets :(" : null}
-                <button onClick={addField(links.length, {name: ""})}>
-                  Add pet
-                </button>
-              </ul>
-            )}
-          </ArrayField>
-          <div>
-            <button onClick={onSubmit}>Submit</button>
-          </div>
-        </>
-      )}
-    </ObjectField>
-  )}
-</Form>;
+          </ObjectField>
+        )}
+      </Form>
+    </div>
+  );
+}
 ```
+
+<!-- TODO(dmnd) Add removeField and moveField to the example -->
 
 `<ArrayField>` exposes both an array of links to the array elements, but also an object containing mutators for the array:
 
@@ -265,7 +300,7 @@ Example:
 <Form>
   {(link, handleSubmit) => (
     <Modal buttons={[<button onClick={handleSubmit}>Submit</button>]}>
-      <MyField link={link} />
+      <MyField link={link}>...</MyField>
     </Modal>
   )}
 </Form>
