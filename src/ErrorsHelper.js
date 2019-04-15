@@ -23,7 +23,7 @@ type Props<T> = {|
     client: ClientErrors,
     server: ServerErrors,
     flattened: Array<string>,
-  }) => Node,
+  }) => React.Node,
 |};
 export default function ErrorsHelper<T>(props: Props<T>) {
   const {errors, meta} = getExtras(props.link.formState);
