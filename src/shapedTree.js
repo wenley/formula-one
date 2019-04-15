@@ -163,8 +163,15 @@ export function checkShape<T, Node>(
   }
   if (tree.type === "object") {
     invariant(value instanceof Object, "value isn't an object in checkTree");
-    Object.keys(tree.children).forEach(k => {
-      checkShape(value[k], tree.children[k]);
+    const valueEntries = Object.entries(value);
+    const childrenKeys = new Set(Object.keys(tree.children));
+    invariant(
+      valueEntries.length === childrenKeys.size,
+      "value doesn't have the right number of keys"
+    );
+    valueEntries.forEach(([key, value]) => {
+      invariant(childrenKeys.has(key));
+      checkShape(value, tree.children[key]);
     });
   }
   // leaves are allowed to stand in for complex types in T
