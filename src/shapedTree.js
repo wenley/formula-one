@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 
 import {
   type Tree,
@@ -164,6 +164,7 @@ export function checkShape<T, Node>(
   if (tree.type === "object") {
     invariant(value instanceof Object, "value isn't an object in checkTree");
     Object.keys(tree.children).forEach(k => {
+      // $FlowFixMe There is no typed relation between the shape of value and tree.children as of 0.97.0 this is an error
       checkShape((value: any)[k], tree.children[k]);
     });
   }
