@@ -1,4 +1,4 @@
-// @flow strict
+// @flow
 
 import {
   type Tree,
@@ -164,7 +164,7 @@ export function checkShape<T, Node>(
   if (tree.type === "object") {
     invariant(value instanceof Object, "value isn't an object in checkTree");
     Object.keys(tree.children).forEach(k => {
-      checkShape(value[k], tree.children[k]);
+      checkShape((value: any)[k], tree.children[k]);
     });
   }
   // leaves are allowed to stand in for complex types in T
