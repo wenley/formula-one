@@ -323,7 +323,7 @@ could be used in this form:
 
 ```jsx
 <Form serverErrors={serverErrors}>
-  ({(link, handleSubmit)}) => (
+  {(link, handleSubmit) => (
   <>
     <ObjectField link={link}>
       {links => (
@@ -359,7 +359,7 @@ An example of how these data could be used:
 
 ```jsx
 <Form onSubmit={handleSubmit}>
-  ({(link, handleSubmit, {valid})}) => (
+  {(link, handleSubmit, {valid}) => (
   <>
     <Field link={link}>
       {(value, errors, onChange, onBlur, {changed}) => (
@@ -399,7 +399,7 @@ function handleSubmit(value: User, saveOrSubmit: "save" | "submit") {
 }
 
 <Form onSubmit={handleSubmit}>
-  ({(link, handleSubmit)}) => (
+  {(link, handleSubmit) => (
   <>
     <UserField link={link} />
     <div>
@@ -416,6 +416,8 @@ function handleSubmit(value: User, saveOrSubmit: "save" | "submit") {
 It is easy to submit a **formula-one** form using the `handleSubmit` argument provided to `<Form>`'s render prop, but sometimes you need to submit a `<Form>` from outside. This is possible using the `submit()` method available on `<Form>` along with a React ref to that `<Form>` element. This `submit()` method can also receive additional user-specified information, as stated above.
 
 ```jsx
+function handleSubmit(value) { /* ... */ }
+
 class MyExternalButtonExample extends React.Component<Props> {
   form: null | React.Element<typeof Form>;
 
@@ -440,8 +442,7 @@ class MyExternalButtonExample extends React.Component<Props> {
         }}
         onSubmit={handleSubmit}
       >
-        ({(link, handleSubmit)}) => (<UserField link={link} />
-        )}
+        {link => (<UserField link={link} />)}
       </Form>
       <button onClick={this.handleSubmitClick}>Submit</button>
     </div>;
